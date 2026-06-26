@@ -1,0 +1,19 @@
+# Core dependencies — install reliably on Windows/macOS/Linux.
+# The AI service runs fully on these alone: forecasting (GBM), attribution,
+# enforcement ranking, and citizen advisory with TF-IDF RAG grounding +
+# Claude via raw httpx.
+fastapi==0.115.6
+uvicorn==0.34.0
+httpx==0.28.1
+numpy==2.2.1
+scikit-learn==1.6.1
+pandas==2.2.3
+python-dotenv==1.0.1
+pydantic==2.10.4
+joblib==1.4.2
+python-multipart==0.0.20
+
+# Optional upgrades (semantic-embedding RAG, native SDKs) live in
+# requirements-optional.txt. The app auto-detects and uses them if installed,
+# but never requires them:
+#   pip install -r requirements-optional.txt

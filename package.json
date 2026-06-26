@@ -1,0 +1,13 @@
+{
+  "name": "vayu-intelligence",
+  "version": "1.0.0",
+  "description": "AI-Powered Urban Air Quality Intelligence Platform",
+  "scripts": {
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
+    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm start\"",
+    "build": "cd client && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
