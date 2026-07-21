@@ -121,10 +121,10 @@ function MainLayout() {
       {/* TOP NAV */}
       <nav style={{
         height: 56,
-        background: 'rgba(9, 14, 23, 0.88)',
+        background: 'var(--nav-bg, rgba(9,14,23,0.92))',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(0,229,255,0.15)',
+        borderBottom: '1px solid var(--nav-border, rgba(0,229,255,0.12))',
         display: 'flex', alignItems: 'center',
         padding: '0 20px', gap: 20, flexShrink: 0, zIndex: 100,
         position: 'relative',
@@ -134,17 +134,17 @@ function MainLayout() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginRight: 4, cursor: 'pointer' }} onClick={() => navigate('/')}>
           <div style={{
             width: 34, height: 34, borderRadius: 10,
-            background: 'linear-gradient(135deg, #00e5ff 0%, #007a8c 100%)',
+            background: 'linear-gradient(135deg, var(--cyan-bright) 0%, var(--cyan-dim) 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 16px rgba(0,229,255,0.4)',
+            boxShadow: '0 0 16px var(--cyan-glow)',
           }}>
             <Wind size={18} color="#030509" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#f0f6fc', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
               Vayu Intelligence
             </div>
-            <div style={{ fontSize: 9, color: '#57606a', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <div style={{ fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               Urban Air Quality Platform
             </div>
           </div>
@@ -165,9 +165,9 @@ function MainLayout() {
                 display: 'flex', alignItems: 'center', gap: 6,
                 padding: '6px 12px', borderRadius: 8,
                 textDecoration: 'none', fontSize: 12, fontWeight: 600,
-                color: isActive ? '#00e5ff' : '#8b949e',
-                background: isActive ? 'rgba(0,229,255,0.12)' : 'transparent',
-                border: `1px solid ${isActive ? 'rgba(0,229,255,0.3)' : 'transparent'}`,
+                color: isActive ? 'var(--cyan-bright)' : 'var(--text-secondary)',
+                background: isActive ? 'var(--cyan-glow)' : 'transparent',
+                border: `1px solid ${isActive ? 'var(--border-active)' : 'transparent'}`,
                 transition: 'all 0.15s',
               })}
             >
@@ -463,13 +463,13 @@ function MainLayout() {
 
       {/* FOOTER */}
       <footer style={{
-        height: 28, background: 'rgba(6,10,18,0.95)', borderTop: '1px solid rgba(0,229,255,0.1)',
-        display: 'flex', alignItems: 'center', padding: '0 20px', fontSize: 11, color: '#57606a',
+        height: 28, background: 'var(--nav-bg, rgba(6,10,18,0.95))', borderTop: '1px solid var(--nav-border)',
+        display: 'flex', alignItems: 'center', padding: '0 20px', fontSize: 11, color: 'var(--text-muted)',
         flexShrink: 0, zIndex: 100, position: 'relative',
       }}>
-        <span>Vayu Intelligence · Air Quality & AI Enforcement Platform</span>
+        <span>Vayu Intelligence · Air Quality &amp; AI Enforcement Platform</span>
         <span style={{ margin: '0 8px' }}>·</span>
-        <span style={{ color: '#00e5ff' }}>
+        <span style={{ color: 'var(--cyan-bright)' }}>
           Times of India Hackathon Entry
         </span>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>

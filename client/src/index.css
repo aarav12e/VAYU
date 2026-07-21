@@ -4,44 +4,149 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-:root {
-  /* Vayu Dark Command Center Theme — Glassmorphic over Starfield */
+/* ── THEME: vayu-night (default) ─────────────────────────── */
+:root,
+[data-theme="vayu-night"] {
   --bg-void: #04060c;
-  --bg-deep: rgba(9, 14, 23, 0.88);       /* Sleek dark panels */
-  --bg-surface: rgba(14, 22, 35, 0.85);   /* Inner card surfaces */
-  --bg-card: rgba(16, 26, 42, 0.82);      /* Cards */
-  --bg-hover: rgba(24, 40, 64, 0.90);
+  --bg-deep: rgba(9, 14, 23, 0.92);
+  --bg-surface: rgba(14, 22, 35, 0.88);
+  --bg-card: rgba(16, 26, 42, 0.85);
+  --bg-hover: rgba(24, 40, 64, 0.92);
 
   --cyan-bright: #00e5ff;
   --cyan-mid: #00b4cc;
   --cyan-dim: #007a8c;
   --cyan-glow: rgba(0, 229, 255, 0.12);
 
+  --text-primary: #f0f6fc;
+  --text-secondary: #8b949e;
+  --text-muted: #57606a;
+  --text-accent: #00e5ff;
+
+  --border-subtle: rgba(0, 229, 255, 0.13);
+  --border-active: rgba(0, 229, 255, 0.38);
+
+  --nav-bg: rgba(6, 10, 18, 0.97);
+  --nav-border: rgba(0, 229, 255, 0.1);
+
+  --sidebar-width: 64px;
+  --nav-height: 56px;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ── THEME: solar-flare ─────────────────────────────────── */
+[data-theme="solar-flare"] {
+  --bg-void: #0d0500;
+  --bg-deep: rgba(30, 12, 0, 0.95);
+  --bg-surface: rgba(42, 18, 0, 0.90);
+  --bg-card: rgba(50, 22, 0, 0.88);
+  --bg-hover: rgba(70, 32, 0, 0.95);
+
+  --cyan-bright: #ff6f00;
+  --cyan-mid: #e65100;
+  --cyan-dim: #bf360c;
+  --cyan-glow: rgba(255, 111, 0, 0.12);
+
+  --text-primary: #fff3e0;
+  --text-secondary: #ffcc80;
+  --text-muted: #a1672a;
+  --text-accent: #ff6f00;
+
+  --border-subtle: rgba(255, 111, 0, 0.15);
+  --border-active: rgba(255, 111, 0, 0.45);
+
+  --nav-bg: rgba(13, 5, 0, 0.97);
+  --nav-border: rgba(255, 111, 0, 0.12);
+
+  --sidebar-width: 64px;
+  --nav-height: 56px;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ── THEME: arctic-pulse (light) ────────────────────────── */
+[data-theme="arctic-pulse"] {
+  --bg-void: #f0f9ff;
+  --bg-deep: rgba(224, 242, 254, 0.97);
+  --bg-surface: rgba(186, 230, 253, 0.80);
+  --bg-card: rgba(204, 238, 255, 0.85);
+  --bg-hover: rgba(147, 210, 245, 0.90);
+
+  --cyan-bright: #0284c7;
+  --cyan-mid: #0369a1;
+  --cyan-dim: #075985;
+  --cyan-glow: rgba(2, 132, 199, 0.10);
+
+  --text-primary: #0c2d4e;
+  --text-secondary: #1e5070;
+  --text-muted: #4a7ea0;
+  --text-accent: #0284c7;
+
+  --border-subtle: rgba(2, 132, 199, 0.18);
+  --border-active: rgba(2, 132, 199, 0.50);
+
+  --nav-bg: rgba(224, 242, 254, 0.98);
+  --nav-border: rgba(2, 132, 199, 0.15);
+
+  --sidebar-width: 64px;
+  --nav-height: 56px;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ── THEME: forest-guardian ─────────────────────────────── */
+[data-theme="forest-guardian"] {
+  --bg-void: #050f07;
+  --bg-deep: rgba(10, 28, 14, 0.95);
+  --bg-surface: rgba(14, 40, 18, 0.90);
+  --bg-card: rgba(18, 50, 22, 0.88);
+  --bg-hover: rgba(26, 68, 30, 0.95);
+
+  --cyan-bright: #00e676;
+  --cyan-mid: #00c853;
+  --cyan-dim: #00952e;
+  --cyan-glow: rgba(0, 230, 118, 0.12);
+
+  --text-primary: #e8f5e9;
+  --text-secondary: #a5d6a7;
+  --text-muted: #4e8653;
+  --text-accent: #00e676;
+
+  --border-subtle: rgba(0, 230, 118, 0.14);
+  --border-active: rgba(0, 230, 118, 0.42);
+
+  --nav-bg: rgba(5, 15, 7, 0.97);
+  --nav-border: rgba(0, 230, 118, 0.12);
+
+  --sidebar-width: 64px;
+  --nav-height: 56px;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ── AQI colors (same across all themes) ────────────────── */
+:root,
+[data-theme] {
   --aqi-good: #00e676;
   --aqi-satisfactory: #76ff03;
   --aqi-moderate: #ffea00;
   --aqi-poor: #ff6d00;
   --aqi-verypoor: #d50000;
   --aqi-severe: #9c27b0;
-
-  --text-primary: #f0f6fc;
-  --text-secondary: #8b949e;
-  --text-muted: #57606a;
-  --text-accent: #00e5ff;
-
-  --border-subtle: rgba(0, 229, 255, 0.12);
-  --border-active: rgba(0, 229, 255, 0.35);
-
-  --sidebar-width: 64px;
-  --nav-height: 56px;
-
-  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  /* Smooth theme transitions */
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    color 0.2s ease,
+    box-shadow 0.25s ease;
+}
+
+/* Don't transition transforms or opacity (breaks animations) */
+canvas, svg, img, video {
+  transition: none !important;
 }
 
 html, body, #root {
