@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Send, Wind, User, Globe, Heart } from 'lucide-react';
 import { getAQIColor, getAQICategory } from '../utils/aqiUtils';
 
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 const SUGGESTED_QUESTIONS = [
   { en: 'Is it safe to go outside today?', hi: 'क्या आज बाहर जाना सुरक्षित है?' },

@@ -200,3 +200,54 @@ body {
 
 .input:focus { border-color: var(--border-active); }
 .input::placeholder { color: var(--text-muted); }
+
+/* Spinner */
+.spinner {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 3px solid rgba(0,229,255,0.15);
+  border-top-color: var(--cyan-bright);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Shimmer loading skeleton */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-hover) 50%, var(--bg-surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+/* Glow text */
+.glow-text {
+  text-shadow: 0 0 20px currentColor;
+}
+
+/* Smooth page transitions */
+.page-enter {
+  animation: fade-in 0.2s ease forwards;
+}
+
+/* Glass card */
+.glass {
+  background: rgba(18, 29, 46, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+}
+
+/* Hover lift */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+

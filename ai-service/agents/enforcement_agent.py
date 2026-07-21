@@ -3,7 +3,7 @@ import json
 from typing import List, Dict, Any
 from datetime import datetime
 
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 # Violation site database (in production: pull from city GIS + CPCB)
 VIOLATION_SITES = {

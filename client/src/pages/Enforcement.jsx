@@ -3,7 +3,7 @@ import axios from 'axios';
 import { ShieldAlert, MapPin, ChevronRight, CheckCircle, Truck } from 'lucide-react';
 import { getAQIColor } from '../utils/aqiUtils';
 
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 const SITE_TYPE_CONFIG = {
   CONSTRUCTION: { label: 'Construction', color: '#FFA07A', emoji: '🏗️' },

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 const TrendIcon = ({ trend }) => {
   if (trend === 'increasing') return <TrendingUp size={10} color="#ff6d00" />;
@@ -20,7 +20,8 @@ export default function SourceAttribution({ city }) {
       setLoading(true);
       try {
         const res = await axios.get(`${API}/api/forecast/attribution/${city}`);
-        setData(res.data.data || []);
+        const raw = res.data?.data;
+        setData(Array.isArray(raw) ? raw : []);
       } catch (err) {
         console.error('Attribution error:', err.message);
       } finally {

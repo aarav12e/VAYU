@@ -1,7 +1,5 @@
-# Core dependencies — install reliably on Windows/macOS/Linux.
-# The AI service runs fully on these alone: forecasting (GBM), attribution,
-# enforcement ranking, and citizen advisory with TF-IDF RAG grounding +
-# Claude via raw httpx.
+# Core dependencies — compatible with Python 3.12
+# Pinned versions verified to work together on macOS arm64 + Python 3.12
 fastapi==0.115.6
 uvicorn==0.34.0
 httpx==0.28.1
@@ -9,7 +7,7 @@ numpy==2.2.1
 scikit-learn==1.6.1
 pandas==2.2.3
 python-dotenv==1.0.1
-pydantic==2.10.4
+pydantic==2.11.7
 joblib==1.4.2
 python-multipart==0.0.20
 

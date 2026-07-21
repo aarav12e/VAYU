@@ -1,9 +1,9 @@
 # OPTIONAL upgrades. Not required for the app to run.
 # Installing these makes the RAG layer use dense semantic embeddings instead
-# of TF-IDF, and gives you the native Anthropic/OpenAI SDKs if you prefer them
-# over the built-in httpx Claude call.
+# of TF-IDF, and gives you the native Google/Groq SDKs if you prefer them
+# over the built-in httpx calls.
 #
 # Note: sentence-transformers pulls in PyTorch (large download).
 sentence-transformers==3.3.1
-anthropic==0.42.0
-openai==1.59.6
+google-generativeai==0.8.3
+groq==0.11.0
