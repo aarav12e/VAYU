@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer
 } from 'recharts';
-import { Activity, TrendingUp, AlertTriangle, Zap, Wind, Thermometer } from 'lucide-react';
-import { getAQIColor, getAQICategory } from '../utils/aqiUtils';
+import { Wind } from 'lucide-react';
+import { getAQIColor } from '../utils/aqiUtils';
 import AQIHeatmap from '../components/AQIHeatmap';
 import AlertsTicker from '../components/AlertsTicker';
 import ForecastSlider from '../components/ForecastSlider';
@@ -53,7 +53,7 @@ export default function CommandCenter({ city, liveAQI, alerts }) {
     fill: getAQIColor(r.aqi),
   }));
 
-  const criticalAlerts = alerts.filter(a => a.severity === 'CRITICAL' || a.severity === 'HIGH');
+  // criticalAlerts available via: alerts.filter(a => a.severity === 'CRITICAL' || a.severity === 'HIGH')
   const activeWards = wardReadings.filter(w => w.aqi > 200);
 
   return (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { Send, Wind, User, Bot, Globe, Heart, School, Hospital } from 'lucide-react';
+import { Send, Wind, User, Globe, Heart } from 'lucide-react';
 import { getAQIColor, getAQICategory } from '../utils/aqiUtils';
 
 const API = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -141,7 +141,7 @@ export default function CitizenChat({ city }) {
   const [language, setLanguage] = useState('en');
   const [ward, setWard] = useState('All Wards');
   const [vulnerableLocations, setVulnerableLocations] = useState([]);
-  const [showHindi, setShowHindi] = useState(false);
+  const [showHindi] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {

@@ -8,13 +8,7 @@ const SEVERITY_CONFIG = {
   LOW:      { color: '#00e676', bg: 'rgba(0,230,118,0.08)', border: 'rgba(0,230,118,0.2)', icon: Info, label: 'LOW' },
 };
 
-const TYPE_LABELS = {
-  SPIKE_DETECTED: 'AQI Spike',
-  FORECAST_WARNING: 'Forecast Alert',
-  ENFORCEMENT_ALERT: 'Enforcement',
-  HEALTH_ADVISORY: 'Health Advisory',
-  SOURCE_IDENTIFIED: 'Source Found',
-};
+// TYPE_LABELS reserved for future use
 
 function AlertCard({ alert, onDismiss }) {
   const config = SEVERITY_CONFIG[alert.severity] || SEVERITY_CONFIG.MEDIUM;

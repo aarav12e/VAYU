@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { ShieldAlert, MapPin, Clock, ChevronRight, AlertTriangle, Zap, CheckCircle, Truck } from 'lucide-react';
+import { ShieldAlert, MapPin, ChevronRight, CheckCircle, Truck } from 'lucide-react';
 import { getAQIColor } from '../utils/aqiUtils';
 
 const API = process.env.REACT_APP_API_URL || 'http://localhost:5000';
