@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, MapPin, ChevronRight, CheckCircle, Truck } from 'lucide-react';
+import { ShieldAlert, MapPin, ChevronRight, CheckCircle, Truck, FileText } from 'lucide-react';
 import { getAQIColor } from '../utils/aqiUtils';
 import api from '../services/api';
+import InspectionReportModal from '../components/InspectionReportModal';
 
 const SITE_TYPE_CONFIG = {
   CONSTRUCTION: { label: 'Construction', color: '#FFA07A', emoji: '🏗️' },
@@ -34,7 +35,7 @@ function PriorityMeter({ score }) {
   );
 }
 
-function EnforcementCard({ site, onStatusChange, rank }) {
+function EnforcementCard({ site, onStatusChange, rank, onOpenReport }) {
   const [expanded, setExpanded] = useState(false);
   const [updating, setUpdating] = useState(false);
   const typeConfig = SITE_TYPE_CONFIG[site.siteType] || SITE_TYPE_CONFIG.INDUSTRY;
@@ -173,35 +174,40 @@ function EnforcementCard({ site, onStatusChange, rank }) {
             </div>
           )}
 
-          {/* Action Button */}
-          {site.status === 'PENDING' && (
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            {site.status === 'PENDING' && (
+              <button
+                onClick={handleDispatch}
+                disabled={updating}
+                style={{
+                  flex: 1, padding: '8px 12px', borderRadius: 8,
+                  background: 'linear-gradient(135deg, #00b4cc, #007a8c)',
+                  border: 'none', color: 'var(--bg-void)', fontSize: 11, fontWeight: 700,
+                  cursor: updating ? 'not-allowed' : 'pointer', opacity: updating ? 0.7 : 1,
+                  fontFamily: 'Space Grotesk, sans-serif',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+                }}
+              >
+                <Truck size={12} />
+                {updating ? 'Dispatching...' : 'Dispatch Team'}
+              </button>
+            )}
+
             <button
-              onClick={handleDispatch}
-              disabled={updating}
+              onClick={(e) => { e.stopPropagation(); onOpenReport(site); }}
               style={{
-                width: '100%', padding: '9px 16px', borderRadius: 8,
-                background: 'linear-gradient(135deg, #00b4cc, #007a8c)',
-                border: 'none', color: 'var(--bg-void)', fontSize: 12, fontWeight: 700,
-                cursor: updating ? 'not-allowed' : 'pointer', opacity: updating ? 0.7 : 1,
+                flex: 1, padding: '8px 12px', borderRadius: 8,
+                background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border-subtle)',
+                color: '#ffffff', fontSize: 11, fontWeight: 600, cursor: 'pointer',
                 fontFamily: 'Space Grotesk, sans-serif',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
               }}
             >
-              <Truck size={13} />
-              {updating ? 'Dispatching...' : 'Dispatch Inspection Team'}
+              <FileText size={12} color="#00e5ff" />
+              <span>Export CPCB Order</span>
             </button>
-          )}
-          {site.status === 'DISPATCHED' && (
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              padding: '9px 16px', borderRadius: 8,
-              background: 'rgba(0,180,204,0.1)', border: '1px solid rgba(0,180,204,0.3)',
-              color: '#00b4cc', fontSize: 12, fontWeight: 600,
-            }}>
-              <Truck size={13} />
-              Team Dispatched
-            </div>
-          )}
+          </div>
         </div>
       )}
     </div>
@@ -212,6 +218,7 @@ export default function Enforcement({ city }) {
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
+  const [reportSite, setReportSite] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -324,11 +331,20 @@ export default function Enforcement({ city }) {
                   site={site}
                   rank={i + 1}
                   onStatusChange={handleStatusChange}
+                  onOpenReport={(s) => setReportSite(s)}
                 />
               ))}
             </div>
           )}
         </div>
+
+        {reportSite && (
+          <InspectionReportModal
+            site={reportSite}
+            city={city}
+            onClose={() => setReportSite(null)}
+          />
+        )}
       </div>
 
       {/* RIGHT: Map + Summary */}

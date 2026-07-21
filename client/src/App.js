@@ -13,6 +13,8 @@ import api from './services/api';
 import { CITIES, AQI_COLOR_MAP } from './config/constants';
 import Starfield from './components/layout/Starfield';
 import CityDropdownMenu from './components/layout/CityDropdownMenu';
+import HealthPlannerModal from './components/HealthPlannerModal';
+import CityComparisonModal from './components/CityComparisonModal';
 
 const SEVERITY_CONFIG = {
   CRITICAL: { color: '#d50000', bg: 'rgba(213,0,0,0.1)', border: 'rgba(213,0,0,0.25)', icon: Zap },
@@ -38,6 +40,8 @@ function MainLayout() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifFilter, setNotifFilter] = useState('ALL');
   const [isConnected, setIsConnected] = useState(false);
+  const [healthPlannerOpen, setHealthPlannerOpen] = useState(false);
+  const [cityComparisonOpen, setCityComparisonOpen] = useState(false);
   const notifRef = useRef(null);
   const navigate = useNavigate();
 
@@ -169,6 +173,33 @@ function MainLayout() {
               {label}
             </NavLink>
           ))}
+
+          {/* Quick Action Feature Buttons */}
+          <button
+            onClick={() => setHealthPlannerOpen(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '6px 12px', borderRadius: 8,
+              background: 'rgba(0, 229, 255, 0.1)', border: '1px solid rgba(0, 229, 255, 0.25)',
+              color: '#00e5ff', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              fontFamily: 'Space Grotesk, sans-serif', transition: 'all 0.15s',
+            }}
+          >
+            <span>🫁 Health Planner</span>
+          </button>
+
+          <button
+            onClick={() => setCityComparisonOpen(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '6px 12px', borderRadius: 8,
+              background: 'rgba(118, 255, 3, 0.1)', border: '1px solid rgba(118, 255, 3, 0.25)',
+              color: '#76ff03', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              fontFamily: 'Space Grotesk, sans-serif', transition: 'all 0.15s',
+            }}
+          >
+            <span>⚖️ Compare Cities</span>
+          </button>
         </div>
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -403,11 +434,27 @@ function MainLayout() {
       {/* PAGE CONTENT */}
       <div style={{ flex: 1, overflow: 'hidden', position: 'relative', zIndex: 1 }}>
         <Routes>
-          <Route path="/" element={<CommandCenter city={selectedCity} liveAQI={liveAQI} alerts={alerts} />} />
+          <Route path="/" element={<CommandCenter city={selectedCity} liveAQI={liveAQI} alerts={alerts} onSelectCity={(c) => setSelectedCity(c)} />} />
           <Route path="/enforcement" element={<Enforcement city={selectedCity} />} />
           <Route path="/citizen" element={<CitizenChat city={selectedCity} liveAQI={liveAQI[selectedCity]} />} />
         </Routes>
       </div>
+
+      {/* FEATURE MODALS */}
+      {healthPlannerOpen && (
+        <HealthPlannerModal
+          city={selectedCity}
+          currentAQI={liveAQI[selectedCity]?.aqi || 140}
+          onClose={() => setHealthPlannerOpen(false)}
+        />
+      )}
+
+      {cityComparisonOpen && (
+        <CityComparisonModal
+          defaultCity={selectedCity}
+          onClose={() => setCityComparisonOpen(false)}
+        />
+      )}
 
       {/* FOOTER */}
       <footer style={{

@@ -8,11 +8,14 @@ import ForecastSlider from '../components/ForecastSlider';
 import SourceAttribution from '../components/SourceAttribution';
 import api from '../services/api';
 
-export default function CommandCenter({ city, liveAQI, alerts }) {
+import India3DMap from '../components/India3DMap';
+
+export default function CommandCenter({ city, liveAQI, alerts, onSelectCity }) {
   const [stats, setStats] = useState(null);
   const [history, setHistory] = useState([]);
   const [wardReadings, setWardReadings] = useState([]);
   const [forecastHours, setForecastHours] = useState(24);
+  const [viewMode, setViewMode] = useState('2D'); // '2D' | '3D'
 
   // Reset state when city changes
   useEffect(() => {
@@ -177,13 +180,51 @@ export default function CommandCenter({ city, liveAQI, alerts }) {
         <SourceAttribution city={city} />
       </div>
 
-      {/* CENTER: MAP */}
+      {/* CENTER: MAP / 3D GLOBE */}
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-        {/* Top Floating Forecast Control Bar */}
-        <div style={{ position: 'absolute', top: 18, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'auto' }}>
-          <ForecastSlider city={city} value={forecastHours} onChange={setForecastHours} />
+        {/* Mode Selector Toggle (2D vs 3D) */}
+        <div style={{
+          position: 'absolute', top: 18, right: 24, zIndex: 25,
+          display: 'flex', gap: 4, background: 'rgba(9, 14, 23, 0.9)',
+          border: '1px solid var(--border-active)', borderRadius: 10, padding: 3,
+          backdropFilter: 'blur(16px)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+        }}>
+          <button
+            onClick={() => setViewMode('2D')}
+            style={{
+              padding: '6px 12px', borderRadius: 7, border: 'none',
+              fontSize: 11, fontWeight: 700, cursor: 'pointer',
+              background: viewMode === '2D' ? 'var(--cyan-dim)' : 'transparent',
+              color: viewMode === '2D' ? 'var(--bg-void)' : 'var(--text-secondary)',
+              fontFamily: 'Space Grotesk, sans-serif', transition: 'all 0.15s',
+            }}
+          >
+            🗺️ 2D Ward View
+          </button>
+          <button
+            onClick={() => setViewMode('3D')}
+            style={{
+              padding: '6px 12px', borderRadius: 7, border: 'none',
+              fontSize: 11, fontWeight: 700, cursor: 'pointer',
+              background: viewMode === '3D' ? 'var(--cyan-dim)' : 'transparent',
+              color: viewMode === '3D' ? 'var(--bg-void)' : 'var(--text-secondary)',
+              fontFamily: 'Space Grotesk, sans-serif', transition: 'all 0.15s',
+            }}
+          >
+            🌐 3D India Map
+          </button>
         </div>
-        <AQIHeatmap city={city} forecastHours={forecastHours} />
+
+        {viewMode === '2D' ? (
+          <>
+            <div style={{ position: 'absolute', top: 18, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'auto' }}>
+              <ForecastSlider city={city} value={forecastHours} onChange={setForecastHours} />
+            </div>
+            <AQIHeatmap city={city} forecastHours={forecastHours} />
+          </>
+        ) : (
+          <India3DMap liveAQI={liveAQI} onSelectCity={onSelectCity} />
+        )}
       </div>
 
     </div>
