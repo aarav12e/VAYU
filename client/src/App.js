@@ -15,6 +15,7 @@ import Starfield from './components/layout/Starfield';
 import CityDropdownMenu from './components/layout/CityDropdownMenu';
 import HealthPlannerModal from './components/HealthPlannerModal';
 import CityComparisonModal from './components/CityComparisonModal';
+import ThemeSwitcher, { useTheme } from './components/ThemeSwitcher';
 
 const SEVERITY_CONFIG = {
   CRITICAL: { color: '#d50000', bg: 'rgba(213,0,0,0.1)', border: 'rgba(213,0,0,0.25)', icon: Zap },
@@ -42,6 +43,7 @@ function MainLayout() {
   const [isConnected, setIsConnected] = useState(false);
   const [healthPlannerOpen, setHealthPlannerOpen] = useState(false);
   const [cityComparisonOpen, setCityComparisonOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
   const notifRef = useRef(null);
   const navigate = useNavigate();
 
@@ -203,6 +205,9 @@ function MainLayout() {
         </div>
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+
+          {/* Theme Switcher */}
+          <ThemeSwitcher theme={theme} setTheme={setTheme} />
 
           {/* Home / Landing button */}
           <button
