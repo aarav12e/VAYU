@@ -10,9 +10,7 @@ const THEMES = [
     preview: {
       bg: 'linear-gradient(135deg, #04060c 0%, #090e17 100%)',
       accent: '#00e5ff',
-      dot1: '#00e5ff',
-      dot2: '#76ff03',
-      dot3: '#ff6d00',
+      dot1: '#00e5ff', dot2: '#76ff03', dot3: '#ff6d00',
     },
   },
   {
@@ -23,22 +21,7 @@ const THEMES = [
     preview: {
       bg: 'linear-gradient(135deg, #0d0500 0%, #2a1500 100%)',
       accent: '#ff6f00',
-      dot1: '#ff6f00',
-      dot2: '#ffd600',
-      dot3: '#ff1744',
-    },
-  },
-  {
-    id: 'arctic-pulse',
-    name: 'Arctic Pulse',
-    desc: 'Clean icy blue · Light',
-    emoji: '❄️',
-    preview: {
-      bg: 'linear-gradient(135deg, #f0f9ff 0%, #bae6fd 100%)',
-      accent: '#0ea5e9',
-      dot1: '#0ea5e9',
-      dot2: '#6366f1',
-      dot3: '#22d3ee',
+      dot1: '#ff6f00', dot2: '#ffd600', dot3: '#ff1744',
     },
   },
   {
@@ -49,9 +32,7 @@ const THEMES = [
     preview: {
       bg: 'linear-gradient(135deg, #050f07 0%, #122917 100%)',
       accent: '#00e676',
-      dot1: '#00e676',
-      dot2: '#69f0ae',
-      dot3: '#64dd17',
+      dot1: '#00e676', dot2: '#69f0ae', dot3: '#64dd17',
     },
   },
 ];

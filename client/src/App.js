@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, useNavigate } from 'react-router-dom';
 import {
   Wind, MapPin, ShieldAlert, MessageSquare, Activity, Bell, ChevronDown, Wifi,
-  X, AlertTriangle, Zap, Info, Home
+  X, AlertTriangle, Zap, Info
 } from 'lucide-react';
 import LandingPage from './pages/LandingPage';
 import CommandCenter from './pages/CommandCenter';
@@ -118,52 +118,58 @@ function MainLayout() {
         />
       </div>
 
-      {/* TOP NAV */}
+      {/* ── TOP NAVBAR ─────────────────────────────────────────── */}
       <nav style={{
-        height: 56,
-        background: 'var(--nav-bg, rgba(9,14,23,0.92))',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid var(--nav-border, rgba(0,229,255,0.12))',
+        height: 60,
+        background: 'var(--nav-bg, rgba(6,10,18,0.96))',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        borderBottom: '1px solid var(--nav-border)',
         display: 'flex', alignItems: 'center',
-        padding: '0 20px', gap: 20, flexShrink: 0, zIndex: 100,
-        position: 'relative',
+        padding: '0 18px', gap: 0,
+        flexShrink: 0, zIndex: 200, position: 'relative',
       }}>
 
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginRight: 4, cursor: 'pointer' }} onClick={() => navigate('/')}>
+        {/* ── LEFT: Logo ─────────────────────────── */}
+        <div
+          onClick={() => navigate('/')}
+          style={{ display: 'flex', alignItems: 'center', gap: 9, cursor: 'pointer', marginRight: 20, flexShrink: 0 }}
+        >
           <div style={{
-            width: 34, height: 34, borderRadius: 10,
+            width: 36, height: 36, borderRadius: 10, flexShrink: 0,
             background: 'linear-gradient(135deg, var(--cyan-bright) 0%, var(--cyan-dim) 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 16px var(--cyan-glow)',
+            boxShadow: '0 0 18px var(--cyan-glow)',
           }}>
             <Wind size={18} color="#030509" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-              Vayu Intelligence
+            <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.15 }}>
+              VAYU
             </div>
-            <div style={{ fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              Urban Air Quality Platform
+            <div style={{ fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', lineHeight: 1 }}>
+              Intelligence
             </div>
           </div>
         </div>
 
-        {/* Nav Links */}
-        <div style={{ display: 'flex', gap: 4 }}>
+        {/* Divider */}
+        <div style={{ width: 1, height: 28, background: 'var(--border-subtle)', marginRight: 16, flexShrink: 0 }} />
+
+        {/* ── CENTER: Nav Links ───────────────────── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           {[
-            { to: '/app', icon: Activity, label: 'Command Center' },
-            { to: '/app/enforcement', icon: ShieldAlert, label: 'Enforcement' },
-            { to: '/app/citizen', icon: MessageSquare, label: 'Citizen AI' },
+            { to: '/app',              icon: Activity,      label: 'Command' },
+            { to: '/app/enforcement',  icon: ShieldAlert,   label: 'Enforcement' },
+            { to: '/app/citizen',      icon: MessageSquare, label: 'Citizen AI' },
           ].map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
               to={to}
               end={to === '/app'}
               style={({ isActive }) => ({
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '6px 12px', borderRadius: 8,
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '5px 11px', borderRadius: 7,
                 textDecoration: 'none', fontSize: 12, fontWeight: 600,
                 color: isActive ? 'var(--cyan-bright)' : 'var(--text-secondary)',
                 background: isActive ? 'var(--cyan-glow)' : 'transparent',
@@ -171,108 +177,119 @@ function MainLayout() {
                 transition: 'all 0.15s',
               })}
             >
-              <Icon size={13} />
+              <Icon size={12} />
               {label}
             </NavLink>
           ))}
+        </div>
 
-          {/* Quick Action Feature Buttons */}
+        {/* Divider */}
+        <div style={{ width: 1, height: 28, background: 'var(--border-subtle)', margin: '0 14px', flexShrink: 0 }} />
+
+        {/* ── FEATURE TOOLS ──────────────────────── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <button
             onClick={() => setHealthPlannerOpen(true)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '6px 12px', borderRadius: 8,
-              background: 'rgba(0, 229, 255, 0.1)', border: '1px solid rgba(0, 229, 255, 0.25)',
-              color: '#00e5ff', fontSize: 12, fontWeight: 600, cursor: 'pointer',
-              fontFamily: 'Space Grotesk, sans-serif', transition: 'all 0.15s',
+              display: 'flex', alignItems: 'center', gap: 5,
+              padding: '5px 10px', borderRadius: 7,
+              background: 'var(--cyan-glow)', border: '1px solid var(--border-subtle)',
+              color: 'var(--cyan-bright)', fontSize: 11, fontWeight: 600,
+              cursor: 'pointer', fontFamily: 'Space Grotesk, sans-serif',
+              transition: 'all 0.15s', flexShrink: 0,
             }}
           >
-            <span>🫁 Health Planner</span>
+            <span style={{ fontSize: 12 }}>🫁</span>
+            <span>Health</span>
           </button>
 
           <button
             onClick={() => setCityComparisonOpen(true)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '6px 12px', borderRadius: 8,
-              background: 'rgba(118, 255, 3, 0.1)', border: '1px solid rgba(118, 255, 3, 0.25)',
-              color: '#76ff03', fontSize: 12, fontWeight: 600, cursor: 'pointer',
-              fontFamily: 'Space Grotesk, sans-serif', transition: 'all 0.15s',
+              display: 'flex', alignItems: 'center', gap: 5,
+              padding: '5px 10px', borderRadius: 7,
+              background: 'rgba(118,255,3,0.08)', border: '1px solid rgba(118,255,3,0.2)',
+              color: '#76ff03', fontSize: 11, fontWeight: 600,
+              cursor: 'pointer', fontFamily: 'Space Grotesk, sans-serif',
+              transition: 'all 0.15s', flexShrink: 0,
             }}
           >
-            <span>⚖️ Compare Cities</span>
+            <span style={{ fontSize: 12 }}>⚖️</span>
+            <span>Compare</span>
           </button>
         </div>
 
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* ── RIGHT: Controls ─────────────────────── */}
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
 
-          {/* Theme Switcher */}
-          <ThemeSwitcher theme={theme} setTheme={setTheme} />
-
-          {/* Home / Landing button */}
-          <button
-            onClick={() => navigate('/')}
-            title="Landing Page"
-            style={{
-              display: 'flex', alignItems: 'center', gap: 4,
-              padding: '6px 10px', borderRadius: 8,
-              background: 'rgba(14,22,35,0.6)', border: '1px solid rgba(0,229,255,0.15)',
-              color: '#8b949e', fontSize: 12, cursor: 'pointer',
-              fontFamily: 'Space Grotesk, sans-serif',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#00e5ff'; e.currentTarget.style.borderColor = '#00e5ff'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#8b949e'; e.currentTarget.style.borderColor = 'rgba(0,229,255,0.15)'; }}
-          >
-            <Home size={13} />
-            <span>Home</span>
-          </button>
-
-          {/* Status pill */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            background: 'rgba(14,22,35,0.8)', border: '1px solid rgba(0,229,255,0.12)',
-            borderRadius: 999, padding: '4px 10px',
-          }}>
-            <div style={{
-              width: 6, height: 6, borderRadius: '50%',
-              background: isConnected ? '#00e676' : '#ff6d00',
-              boxShadow: `0 0 6px ${isConnected ? '#00e676' : '#ff6d00'}`,
-            }} />
-            <span style={{ fontSize: 10, color: '#57606a' }}>
-              {isConnected ? 'LIVE' : 'OFFLINE'}
-            </span>
-          </div>
-
-          {/* Live AQI Badge */}
+          {/* Live AQI badge */}
           {cityAQI && (
             <div style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              background: 'rgba(14,22,35,0.8)', border: '1px solid rgba(0,229,255,0.15)',
-              borderRadius: 8, padding: '4px 12px',
+              display: 'flex', alignItems: 'center', gap: 7,
+              background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)',
+              borderRadius: 8, padding: '4px 10px', flexShrink: 0,
             }}>
               <div style={{
                 width: 6, height: 6, borderRadius: '50%',
-                background: aqiColor, animation: 'pulse-dot 2s infinite',
+                background: aqiColor, animation: 'pulse-dot 2s infinite', flexShrink: 0,
               }} />
-              <span style={{ fontSize: 11, color: '#8b949e' }}>AQI</span>
-              <span className="mono" style={{ fontSize: 14, fontWeight: 700, color: aqiColor }}>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em' }}>AQI</span>
+              <span className="mono" style={{ fontSize: 15, fontWeight: 800, color: aqiColor, lineHeight: 1 }}>
                 {cityAQI.aqi}
               </span>
-              <span style={{ fontSize: 10, color: '#57606a' }}>{cityAQI.category}</span>
+              <span style={{
+                fontSize: 9, fontWeight: 700, color: aqiColor,
+                background: `${aqiColor}18`, borderRadius: 4, padding: '1px 5px',
+              }}>{cityAQI.category}</span>
             </div>
           )}
+
+          {/* Divider */}
+          <div style={{ width: 1, height: 24, background: 'var(--border-subtle)', flexShrink: 0 }} />
+
+          {/* Theme switcher */}
+          <ThemeSwitcher theme={theme} setTheme={setTheme} />
+
+          {/* City Selector */}
+          <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+            <button
+              className="btn btn-ghost"
+              onClick={() => setCityDropdownOpen(!cityDropdownOpen)}
+              style={{
+                gap: 6, minWidth: 120, justifyContent: 'space-between',
+                fontSize: 12, padding: '5px 10px',
+              }}
+            >
+              <MapPin size={12} color="var(--cyan-bright)" />
+              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{selectedCity}</span>
+              <ChevronDown
+                size={11}
+                color="var(--text-muted)"
+                style={{ transition: 'transform 0.2s', transform: cityDropdownOpen ? 'rotate(180deg)' : 'none' }}
+              />
+            </button>
+            {cityDropdownOpen && (
+              <CityDropdownMenu
+                cities={CITIES}
+                selectedCity={selectedCity}
+                liveAQI={liveAQI}
+                aqiColorMap={AQI_COLOR_MAP}
+                onSelect={(city) => { setSelectedCity(city); setCityDropdownOpen(false); }}
+              />
+            )}
+          </div>
 
           {/* Alerts Bell */}
           <div style={{ position: 'relative' }} ref={notifRef} onClick={(e) => e.stopPropagation()}>
             <button
               className="btn btn-ghost"
-              style={{ padding: '6px 10px', position: 'relative', background: notifOpen ? 'var(--bg-hover)' : 'transparent' }}
+              style={{ padding: '5px 9px', position: 'relative', background: notifOpen ? 'var(--bg-hover)' : 'transparent' }}
               onClick={() => setNotifOpen(!notifOpen)}
             >
-              <Bell size={14} />
+              <Bell size={14} color="var(--text-secondary)" />
               {criticalCount > 0 && (
                 <span style={{
-                  position: 'absolute', top: 4, right: 4,
+                  position: 'absolute', top: 3, right: 3,
                   width: 7, height: 7, borderRadius: '50%',
                   background: '#d50000', boxShadow: '0 0 8px #d50000',
                   animation: 'pulse-dot 1.5s infinite',
@@ -285,7 +302,7 @@ function MainLayout() {
               <div style={{
                 position: 'absolute', top: 'calc(100% + 8px)', right: 0,
                 width: 360, maxHeight: 520,
-                background: 'rgba(16, 26, 42, 0.95)',
+                background: 'var(--bg-card)',
                 border: '1px solid var(--border-active)',
                 borderRadius: 14, overflow: 'hidden',
                 boxShadow: '0 20px 60px rgba(0,0,0,0.8)',
@@ -301,7 +318,7 @@ function MainLayout() {
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <Bell size={13} color="var(--cyan-bright)" />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Live Alerts</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>Live Alerts</span>
                     {criticalCount > 0 && (
                       <span style={{
                         fontSize: 10, fontWeight: 700, color: '#d50000',
@@ -320,7 +337,7 @@ function MainLayout() {
                 {/* Filter Tabs */}
                 <div style={{
                   display: 'flex', gap: 4, padding: '8px 16px',
-                  borderBottom: '1px solid var(--border-subtle)', background: 'rgba(14,22,35,0.4)',
+                  borderBottom: '1px solid var(--border-subtle)', background: 'rgba(0,0,0,0.15)',
                   flexShrink: 0,
                 }}>
                   {['ALL', 'CRITICAL', 'HIGH', 'MEDIUM'].map((f) => (
@@ -332,8 +349,7 @@ function MainLayout() {
                         fontSize: 10, fontWeight: 600, cursor: 'pointer',
                         background: notifFilter === f ? 'var(--cyan-dim)' : 'transparent',
                         color: notifFilter === f ? 'var(--bg-void)' : 'var(--text-muted)',
-                        fontFamily: 'Space Grotesk, sans-serif',
-                        transition: 'all 0.15s',
+                        fontFamily: 'Space Grotesk, sans-serif', transition: 'all 0.15s',
                       }}
                     >
                       {f}
@@ -362,7 +378,6 @@ function MainLayout() {
                           style={{
                             padding: '10px 12px', borderRadius: 8, marginBottom: 6,
                             background: cfg.bg, border: `1px solid ${cfg.border}`,
-                            transition: 'all 0.15s',
                           }}
                         >
                           <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
@@ -408,30 +423,21 @@ function MainLayout() {
             )}
           </div>
 
-          {/* City Selector */}
-          <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
-            <button
-              className="btn btn-ghost"
-              onClick={() => setCityDropdownOpen(!cityDropdownOpen)}
-              style={{ gap: 6, minWidth: 130, justifyContent: 'space-between', fontSize: 12 }}
-            >
-              <MapPin size={12} />
-              <span style={{ fontWeight: 600 }}>{selectedCity}</span>
-              <ChevronDown size={11} style={{ transition: 'transform 0.2s', transform: cityDropdownOpen ? 'rotate(180deg)' : 'none' }} />
-            </button>
-
-            {cityDropdownOpen && (
-              <CityDropdownMenu
-                cities={CITIES}
-                selectedCity={selectedCity}
-                liveAQI={liveAQI}
-                aqiColorMap={AQI_COLOR_MAP}
-                onSelect={(city) => {
-                  setSelectedCity(city);
-                  setCityDropdownOpen(false);
-                }}
-              />
-            )}
+          {/* Live connection pill */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 5,
+            background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)',
+            borderRadius: 999, padding: '3px 9px', flexShrink: 0,
+          }}>
+            <div style={{
+              width: 6, height: 6, borderRadius: '50%',
+              background: isConnected ? '#00e676' : '#ff6d00',
+              boxShadow: `0 0 6px ${isConnected ? '#00e676' : '#ff6d00'}`,
+              animation: isConnected ? 'pulse-dot 2s infinite' : 'none',
+            }} />
+            <span style={{ fontSize: 9.5, fontWeight: 700, color: isConnected ? '#00e676' : '#ff6d00', letterSpacing: '0.06em' }}>
+              {isConnected ? 'LIVE' : 'OFFLINE'}
+            </span>
           </div>
         </div>
       </nav>
