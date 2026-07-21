@@ -25,140 +25,108 @@ def get_aqi_category(aqi: float) -> str:
 class ForecastingAgent:
     """
     Hyperlocal AQI Forecasting Agent.
-    Uses Gradient Boosting with engineered time + weather features.
-    Falls back to diurnal statistical model if sklearn unavailable.
+    Loads pre-trained GradientBoostingRegressor ML models & StandardScaler joblib artifacts
+    from models/ directory for all 32 Indian state and UT capital cities.
     """
 
     BASE_AQIS = {
-        "Mumbai": 145, "Delhi": 210, "Kolkata": 168,
-        "Bengaluru": 95, "Chennai": 112, "Pune": 130,
+        "Mumbai": 145, "Delhi": 240, "Bengaluru": 95, "Chennai": 112, "Kolkata": 168, "Pune": 130,
+        "Hyderabad": 115, "Ahmedabad": 155, "Jaipur": 160, "Lucknow": 195, "Chandigarh": 120,
+        "Patna": 220, "Bhubaneswar": 125, "Thiruvananthapuram": 65, "Bhopal": 135, "Visakhapatnam": 110,
+        "Guwahati": 140, "Ranchi": 130, "Raipur": 150, "Dehradun": 105, "Shimla": 45, "Srinagar": 85,
+        "Panaji": 55, "Leh": 35, "Puducherry": 75, "Agartala": 110, "Shillong": 40, "Imphal": 60,
+        "Kohima": 50, "Aizawl": 30, "Itanagar": 45, "Gangtok": 35
     }
 
     def __init__(self):
         self.models: Dict[str, Any] = {}
         self.scalers: Dict[str, Any] = {}
-        self.model_path = os.path.join(os.path.dirname(__file__), "../models")
-        os.makedirs(self.model_path, exist_ok=True)
+        self.model_dir = os.path.join(os.path.dirname(__file__), "../models")
+        self._load_pretrained_models()
+
+    def _load_pretrained_models(self):
+        """Load pre-trained .joblib model files if available."""
+        if not SKLEARN_AVAILABLE:
+            return
+
+        for city in self.BASE_AQIS.keys():
+            model_path = os.path.join(self.model_dir, f"gbm_{city}.joblib")
+            scaler_path = os.path.join(self.model_dir, f"scaler_{city}.joblib")
+            if os.path.exists(model_path) and os.path.exists(scaler_path):
+                try:
+                    self.models[city] = joblib.load(model_path)
+                    self.scalers[city] = joblib.load(scaler_path)
+                except Exception as e:
+                    print(f"Error loading model for {city}: {e}")
 
     def _extract_features(self, timestamp: datetime, aqi_lag1: float,
                            aqi_lag3: float, aqi_lag6: float, aqi_rolling_mean: float) -> List[float]:
-        """Engineer time + lag features for prediction."""
         return [
             timestamp.hour,
             timestamp.weekday(),
             timestamp.month,
-            np.sin(2 * np.pi * timestamp.hour / 24),   # Cyclic hour encoding
+            np.sin(2 * np.pi * timestamp.hour / 24),
             np.cos(2 * np.pi * timestamp.hour / 24),
-            np.sin(2 * np.pi * timestamp.month / 12),  # Cyclic month encoding
+            np.sin(2 * np.pi * timestamp.month / 12),
             np.cos(2 * np.pi * timestamp.month / 12),
             aqi_lag1,
             aqi_lag3,
             aqi_lag6,
             aqi_rolling_mean,
-            1 if timestamp.weekday() >= 5 else 0,  # Weekend flag
+            1 if timestamp.weekday() >= 5 else 0,
         ]
 
-    def _train_model(self, city: str, history: List[Dict]) -> Any:
-        """Train a GBM model on available history."""
-        if not SKLEARN_AVAILABLE or len(history) < 10:
-            return None
+    def predict(self, city: str, history: List[Dict], hours: int = 72) -> List[Dict[str, Any]]:
+        base_aqi = self.BASE_AQIS.get(city, 125)
+        now = datetime.utcnow()
+        forecasts = []
 
-        aqi_values = [h["aqi"] for h in history]
-        timestamps = [datetime.fromisoformat(str(h["timestamp"]).replace("Z", "")) for h in history]
+        model = self.models.get(city)
+        scaler = self.scalers.get(city)
 
-        X, y = [], []
-        for i in range(6, len(aqi_values)):
-            ts = timestamps[i]
-            features = self._extract_features(
-                ts,
-                aqi_values[i - 1],
-                aqi_values[i - 3],
-                aqi_values[i - 6],
-                np.mean(aqi_values[max(0, i - 6):i]),
-            )
-            X.append(features)
-            y.append(aqi_values[i])
+        current_val = base_aqi
+        if history and len(history) > 0:
+            current_val = history[-1].get("aqi", base_aqi)
 
-        if len(X) < 5:
-            return None
+        for h in range(1, hours + 1):
+            forecast_time = now + timedelta(hours=h)
 
-        scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X)
-        model = GradientBoostingRegressor(n_estimators=100, max_depth=4, learning_rate=0.1, random_state=42)
-        model.fit(X_scaled, y)
+            if model and scaler:
+                try:
+                    feats = self._extract_features(
+                        forecast_time,
+                        current_val,
+                        current_val * 0.98,
+                        current_val * 0.95,
+                        current_val * 0.96
+                    )
+                    scaled_feats = scaler.transform([feats])
+                    predicted_aqi = float(model.predict(scaled_feats)[0])
+                except Exception:
+                    predicted_aqi = self._diurnal_fallback(city, base_aqi, forecast_time)
+            else:
+                predicted_aqi = self._diurnal_fallback(city, base_aqi, forecast_time)
 
-        self.models[city] = model
-        self.scalers[city] = scaler
-        return model
+            predicted_aqi = float(np.clip(predicted_aqi, 10, 500))
+            forecasts.append({
+                "city": city,
+                "ward": city,
+                "forecastTime": forecast_time.isoformat(),
+                "predictedAQI": round(predicted_aqi),
+                "category": get_aqi_category(predicted_aqi),
+                "confidence": round(max(0.65, 0.98 - (h / hours) * 0.25), 2),
+            })
+
+            current_val = predicted_aqi
+
+        return forecasts
 
     def _diurnal_fallback(self, city: str, base_aqi: float, forecast_time: datetime) -> float:
-        """Statistical diurnal pattern as fallback."""
         hour = forecast_time.hour
         if 7 <= hour <= 10: factor = 1.25
         elif 17 <= hour <= 21: factor = 1.20
         elif 1 <= hour <= 5: factor = 0.78
         else: factor = 1.0
 
-        # Seasonal: winter worse
-        if forecast_time.month in [11, 12, 1, 2]: factor *= 1.15
-
-        noise = np.random.normal(0, 15)
-        return max(10, min(500, base_aqi * factor + noise))
-
-    def predict(self, city: str, history: List[Dict], hours: int = 24) -> List[Dict]:
-        """Generate hourly AQI forecasts for next N hours."""
-        base_aqi = self.BASE_AQIS.get(city, 150)
-        now = datetime.utcnow()
-
-        # Try to train/use ML model
-        model = self._train_model(city, history)
-
-        forecasts = []
-        recent_aqis = [h["aqi"] for h in history[:12]] if history else [base_aqi] * 12
-
-        for h in range(1, hours + 1):
-            forecast_time = now + timedelta(hours=h)
-
-            if model and SKLEARN_AVAILABLE and len(recent_aqis) >= 6:
-                try:
-                    features = self._extract_features(
-                        forecast_time,
-                        recent_aqis[-1],
-                        recent_aqis[-3] if len(recent_aqis) >= 3 else recent_aqis[-1],
-                        recent_aqis[-6] if len(recent_aqis) >= 6 else recent_aqis[-1],
-                        np.mean(recent_aqis[-6:]),
-                    )
-                    X_scaled = self.scalers[city].transform([features])
-                    predicted = float(model.predict(X_scaled)[0])
-                    predicted = max(10, min(500, predicted + np.random.normal(0, 8)))
-                    confidence = max(0.5, 0.88 - h * 0.004)
-                    method = "gbm"
-                except Exception:
-                    predicted = self._diurnal_fallback(city, base_aqi, forecast_time)
-                    confidence = max(0.5, 0.75 - h * 0.005)
-                    method = "fallback"
-            else:
-                predicted = self._diurnal_fallback(city, base_aqi, forecast_time)
-                confidence = max(0.5, 0.75 - h * 0.005)
-                method = "statistical"
-
-            predicted_rounded = round(predicted)
-            recent_aqis.append(predicted)
-
-            forecasts.append({
-                "ward": city,
-                "predictedAQI": predicted_rounded,
-                "predictedCategory": get_aqi_category(predicted_rounded),
-                "confidence": round(confidence, 3),
-                "forecastTime": forecast_time.isoformat(),
-                "generatedAt": now.isoformat(),
-                "modelVersion": f"1.0-{method}",
-                "factors": {
-                    "weatherInfluence": 0.30,
-                    "trafficInfluence": 0.35 if 7 <= forecast_time.hour <= 10 else 0.20,
-                    "industrialInfluence": 0.20,
-                    "seasonalFactor": 1.15 if forecast_time.month in [11, 12, 1, 2] else 1.0,
-                },
-            })
-
-        return forecasts
+        noise = np.random.normal(0, 5)
+        return float(np.clip(base_aqi * factor + noise, 10, 500))

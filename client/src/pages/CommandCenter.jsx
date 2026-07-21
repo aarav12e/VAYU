@@ -5,7 +5,6 @@ import {
 } from 'recharts';
 import { getAQIColor } from '../utils/aqiUtils';
 import AQIHeatmap from '../components/AQIHeatmap';
-import AlertsTicker from '../components/AlertsTicker';
 import ForecastSlider from '../components/ForecastSlider';
 import SourceAttribution from '../components/SourceAttribution';
 
@@ -186,15 +185,6 @@ export default function CommandCenter({ city, liveAQI, alerts }) {
         <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
           <ForecastSlider city={city} value={forecastHours} onChange={setForecastHours} />
         </div>
-      </div>
-
-      {/* RIGHT PANEL: Alerts */}
-      <div style={{
-        width: 290, flexShrink: 0, background: 'var(--bg-deep)',
-        borderLeft: '1px solid var(--border-subtle)',
-        display: 'flex', flexDirection: 'column', overflow: 'hidden',
-      }}>
-        <AlertsTicker alerts={alerts} city={city} />
       </div>
 
     </div>

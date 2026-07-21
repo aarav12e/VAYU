@@ -82,14 +82,15 @@ function EnforcementCard({ site, onStatusChange, rank }) {
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 6 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3 }}>
               {site.siteName}
             </span>
             <span style={{
-              fontSize: 10, padding: '1px 6px', borderRadius: 999,
+              fontSize: 10, padding: '2px 8px', borderRadius: 999,
               background: `${typeConfig.color}22`, color: typeConfig.color,
-              border: `1px solid ${typeConfig.color}44`,
+              border: `1px solid ${typeConfig.color}44`, fontWeight: 600,
+              whiteSpace: 'nowrap',
             }}>
               {typeConfig.emoji} {typeConfig.label}
             </span>

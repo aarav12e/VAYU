@@ -9,8 +9,9 @@ export const getSocket = () => {
     socket = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionDelay: 2000,
-      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: Infinity,
     });
 
     socket.on('connect', () => console.log('🔌 Socket connected:', socket.id));
@@ -22,7 +23,11 @@ export const getSocket = () => {
 
 export const subscribeToCity = (city) => {
   const s = getSocket();
-  s.emit('subscribe_city', city);
+  if (s.connected) {
+    s.emit('subscribe_city', city);
+  } else {
+    s.once('connect', () => s.emit('subscribe_city', city));
+  }
 };
 
 export default getSocket;

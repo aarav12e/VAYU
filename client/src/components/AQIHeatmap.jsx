@@ -13,12 +13,38 @@ const isValidMapboxToken = (token) =>
   token.length > 80;
 
 const CITY_CENTERS = {
-  Mumbai:    { center: [72.8777, 19.076],  zoom: 11 },
-  Delhi:     { center: [77.209,  28.6139], zoom: 11 },
-  Kolkata:   { center: [88.3639, 22.5726], zoom: 11 },
-  Bengaluru: { center: [77.5946, 12.9716], zoom: 11 },
-  Chennai:   { center: [80.2707, 13.0827], zoom: 11 },
-  Pune:      { center: [73.8567, 18.5204], zoom: 11 },
+  Mumbai:             { center: [72.8777, 19.0760], zoom: 11 },
+  Delhi:              { center: [77.2090, 28.6139], zoom: 11 },
+  Bengaluru:          { center: [77.5946, 12.9716], zoom: 11 },
+  Chennai:            { center: [80.2707, 13.0827], zoom: 11 },
+  Kolkata:            { center: [88.3639, 22.5726], zoom: 11 },
+  Hyderabad:          { center: [78.4867, 17.3850], zoom: 11 },
+  Ahmedabad:          { center: [72.5714, 23.0225], zoom: 11 },
+  Jaipur:             { center: [75.7873, 26.9124], zoom: 11 },
+  Lucknow:            { center: [80.9462, 26.8467], zoom: 11 },
+  Chandigarh:         { center: [76.7794, 30.7333], zoom: 11 },
+  Patna:              { center: [85.1376, 25.5941], zoom: 11 },
+  Bhubaneswar:        { center: [85.8245, 20.2961], zoom: 11 },
+  Thiruvananthapuram: { center: [76.9366, 8.5241],  zoom: 11 },
+  Bhopal:             { center: [77.4126, 23.2599], zoom: 11 },
+  Visakhapatnam:      { center: [83.2185, 17.6868], zoom: 11 },
+  Guwahati:           { center: [91.7362, 26.1445], zoom: 11 },
+  Ranchi:             { center: [85.3096, 23.3441], zoom: 11 },
+  Raipur:             { center: [81.6296, 21.2514], zoom: 11 },
+  Dehradun:           { center: [78.0322, 30.3165], zoom: 11 },
+  Shimla:             { center: [77.1734, 31.1048], zoom: 11 },
+  Srinagar:           { center: [74.7973, 34.0837], zoom: 11 },
+  Panaji:             { center: [73.8278, 15.4909], zoom: 11 },
+  Leh:                { center: [77.5771, 34.1526], zoom: 11 },
+  Puducherry:         { center: [79.8083, 11.9416], zoom: 11 },
+  Agartala:           { center: [91.2868, 23.8315], zoom: 11 },
+  Shillong:           { center: [91.8933, 25.5788], zoom: 11 },
+  Imphal:             { center: [93.9368, 24.8170], zoom: 11 },
+  Kohima:             { center: [94.1086, 25.6751], zoom: 11 },
+  Aizawl:             { center: [92.7176, 23.7271], zoom: 11 },
+  Itanagar:           { center: [93.6053, 27.0844], zoom: 11 },
+  Gangtok:            { center: [88.6065, 27.3389], zoom: 11 },
+  Pune:               { center: [73.8567, 18.5204], zoom: 11 },
 };
 
 export default function AQIHeatmap({ city, forecastHours }) {
@@ -30,7 +56,30 @@ export default function AQIHeatmap({ city, forecastHours }) {
 
   useEffect(() => {
     axios.get(`${API}/api/aqi/heatmap/${city}`)
-      .then((res) => setGeojson(res.data.data))
+      .then((res) => {
+        const raw = res.data.data;
+        if (!raw || !raw.features) return setGeojson(raw);
+
+        if (forecastHours > 0) {
+          const mult = forecastHours === 24 ? 1.15 : forecastHours === 48 ? 1.28 : 1.35;
+          const updatedFeatures = raw.features.map((f) => {
+            const currentAqi = f.properties.aqi || 150;
+            const forecasted = Math.min(500, Math.round(currentAqi * mult));
+            return {
+              ...f,
+              properties: {
+                ...f.properties,
+                aqi: forecasted,
+                category: getAQICategory(forecasted),
+                pm25: f.properties.pm25 ? Math.round(f.properties.pm25 * mult) : undefined,
+              },
+            };
+          });
+          setGeojson({ ...raw, features: updatedFeatures });
+        } else {
+          setGeojson(raw);
+        }
+      })
       .catch(() => {});
   }, [city, forecastHours]);
 
@@ -125,7 +174,15 @@ export default function AQIHeatmap({ city, forecastHours }) {
 }
 
 function FallbackMap({ city, geojson }) {
-  const features = geojson?.features || [];
+  const rawFeatures = geojson?.features || [];
+  const uniqueMap = {};
+  rawFeatures.forEach((f) => {
+    const name = f.properties?.ward || f.properties?.station;
+    if (name && !uniqueMap[name]) {
+      uniqueMap[name] = f;
+    }
+  });
+  const features = Object.values(uniqueMap);
   const [selected, setSelected] = useState(null);
 
   return (

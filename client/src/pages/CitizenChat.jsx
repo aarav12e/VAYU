@@ -13,7 +13,14 @@ const SUGGESTED_QUESTIONS = [
   { en: 'Are hospitals at risk today?', hi: 'क्या आज अस्पताल खतरे में हैं?' },
 ];
 
-const WARDS = ['All Wards', 'Andheri', 'Bandra', 'Dharavi', 'Kurla', 'Worli', 'Malad', 'Powai', 'Thane'];
+const CITY_WARDS = {
+  Mumbai: ['All Wards', 'Andheri', 'Bandra', 'Dharavi', 'Kurla', 'Worli', 'Malad', 'Powai', 'Thane'],
+  Chennai: ['All Wards', 'Manali', 'Velachery', 'Guindy', 'T. Nagar', 'Royapuram', 'Adyar', 'Kodambakkam', 'Ambattur'],
+  Delhi: ['All Wards', 'Anand Vihar', 'Okhla', 'Punjabi Bagh', 'RK Puram', 'Dwarka', 'Rohini', 'Jahangirpuri'],
+  Bengaluru: ['All Wards', 'Peenya', 'Silk Board', 'Whitefield', 'Electronic City', 'Indiranagar', 'Jayanagar'],
+  Kolkata: ['All Wards', 'Rabindra Bharati', 'Victoria', 'Ballygunge', 'Jadavpur', 'Salt Lake', 'Howrah'],
+  Pune: ['All Wards', 'Shivajinagar', 'Hadapsar', 'Pimpri', 'Kothrud', 'Hinjewadi', 'Swargate'],
+};
 
 function ChatMessage({ msg }) {
   const isUser = msg.role === 'user';
@@ -254,7 +261,7 @@ export default function CitizenChat({ city }) {
                 fontSize: 12, fontFamily: 'Space Grotesk, sans-serif', cursor: 'pointer',
               }}
             >
-              {WARDS.map(w => <option key={w} value={w}>{w}</option>)}
+              {(CITY_WARDS[city] || ['All Wards', `${city} Central`, `${city} North`, `${city} South`, `${city} East`, `${city} West`]).map(w => <option key={w} value={w}>{w}</option>)}
             </select>
           </div>
         </div>
