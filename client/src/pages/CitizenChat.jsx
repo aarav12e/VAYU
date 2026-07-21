@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
 import { Send, Wind, User, Globe, Heart } from 'lucide-react';
 import { getAQIColor, getAQICategory } from '../utils/aqiUtils';
-
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+import api from '../services/api';
 
 const SUGGESTED_QUESTIONS = [
   { en: 'Is it safe to go outside today?', hi: 'क्या आज बाहर जाना सुरक्षित है?' },
@@ -82,9 +80,28 @@ function ChatMessage({ msg }) {
             {msg.hindiText}
           </div>
         )}
-        <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 6, textAlign: 'right' }}>
-          {new Date(msg.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-          {msg.aiPowered && <span style={{ marginLeft: 4, color: 'var(--cyan-dim)' }}>• AI</span>}
+        <div style={{
+          fontSize: 10,
+          color: isUser ? 'rgba(255, 255, 255, 0.75)' : '#7ea8c0',
+          marginTop: 6,
+          textAlign: 'right',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          gap: 4,
+        }}>
+          <span>{new Date(msg.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+          {msg.aiPowered && (
+            <span style={{
+              fontSize: 9, fontWeight: 700,
+              color: isUser ? '#ffffff' : '#00e5ff',
+              background: isUser ? 'rgba(255,255,255,0.2)' : 'rgba(0,229,255,0.15)',
+              border: `1px solid ${isUser ? 'rgba(255,255,255,0.3)' : 'rgba(0,229,255,0.3)'}`,
+              borderRadius: 4, padding: '0 4px',
+            }}>
+              AI
+            </span>
+          )}
         </div>
       </div>
       {isUser && (
@@ -156,7 +173,7 @@ export default function CitizenChat({ city }) {
   }, [messages]);
 
   useEffect(() => {
-    axios.get(`${API}/api/citizen/vulnerable/${city}`)
+    api.get(`/api/citizen/vulnerable/${city}`)
       .then(res => setVulnerableLocations(res.data.data || []))
       .catch(() => {});
   }, [city]);
@@ -170,7 +187,7 @@ export default function CitizenChat({ city }) {
     setLoading(true);
 
     try {
-      const res = await axios.post(`${API}/api/citizen/query`, {
+      const res = await api.post('/api/citizen/query', {
         message: userMsg,
         city,
         ward: ward === 'All Wards' ? undefined : ward,
@@ -218,47 +235,60 @@ export default function CitizenChat({ city }) {
       }}>
         {/* Chat Header */}
         <div style={{
-          padding: '12px 20px', borderBottom: '1px solid var(--border-subtle)',
-          display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0,
+          padding: '16px 24px', borderBottom: '1px solid var(--border-subtle)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          background: 'rgba(9, 14, 23, 0.85)', backdropFilter: 'blur(16px)',
+          flexShrink: 0, zIndex: 10,
         }}>
-          <div style={{
-            width: 36, height: 36, borderRadius: 10,
-            background: 'linear-gradient(135deg, var(--cyan-bright), var(--cyan-dim))',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Wind size={18} color="var(--bg-void)" />
-          </div>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>Vayu Assistant</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--aqi-good)', animation: 'pulse-dot 2s infinite' }} />
-              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Live AQI data • Multilingual</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 38, height: 38, borderRadius: 10,
+              background: 'linear-gradient(135deg, #00e5ff 0%, #007a8c 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 0 16px rgba(0,229,255,0.35)',
+            }}>
+              <Wind size={20} color="#030509" strokeWidth={2.5} />
+            </div>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+                Citizen AI <span style={{ color: 'var(--cyan-bright)', fontSize: 12, fontWeight: 600, marginLeft: 6 }}>Vayu Assistant</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00e676', boxShadow: '0 0 8px #00e676', animation: 'pulse-dot 2s infinite' }} />
+                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Real-time Air Quality Advisor · Multilingual</span>
+              </div>
             </div>
           </div>
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             {/* Language toggle */}
             <button
               onClick={() => setLanguage(l => l === 'en' ? 'hi' : 'en')}
               style={{
-                padding: '5px 10px', borderRadius: 6,
+                padding: '6px 12px', borderRadius: 8,
                 border: '1px solid var(--border-subtle)',
                 background: 'var(--bg-surface)',
-                color: 'var(--text-secondary)', fontSize: 12, cursor: 'pointer',
-                fontFamily: 'Space Grotesk, sans-serif',
-                display: 'flex', alignItems: 'center', gap: 5,
+                color: 'var(--text-secondary)', fontSize: 12, fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'Space Grotesk, sans-serif',
+                display: 'flex', alignItems: 'center', gap: 6,
+                transition: 'all 0.15s',
               }}
+              onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--cyan-bright)'}
+              onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
             >
-              <Globe size={12} />
+              <Globe size={13} color="var(--cyan-bright)" />
               {language === 'en' ? '🇮🇳 हिंदी' : '🇬🇧 English'}
             </button>
+
             {/* Ward selector */}
             <select
               value={ward}
               onChange={e => setWard(e.target.value)}
               style={{
                 background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)',
-                color: 'var(--text-secondary)', borderRadius: 6, padding: '5px 10px',
-                fontSize: 12, fontFamily: 'Space Grotesk, sans-serif', cursor: 'pointer',
+                color: 'var(--text-primary)', borderRadius: 8, padding: '6px 12px',
+                fontSize: 12, fontWeight: 600, fontFamily: 'Space Grotesk, sans-serif',
+                cursor: 'pointer', outline: 'none',
               }}
             >
               {(CITY_WARDS[city] || ['All Wards', `${city} Central`, `${city} North`, `${city} South`, `${city} East`, `${city} West`]).map(w => <option key={w} value={w}>{w}</option>)}

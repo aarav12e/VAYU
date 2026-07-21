@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer
 } from 'recharts';
@@ -7,8 +6,7 @@ import { getAQIColor } from '../utils/aqiUtils';
 import AQIHeatmap from '../components/AQIHeatmap';
 import ForecastSlider from '../components/ForecastSlider';
 import SourceAttribution from '../components/SourceAttribution';
-
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+import api from '../services/api';
 
 export default function CommandCenter({ city, liveAQI, alerts }) {
   const [stats, setStats] = useState(null);
@@ -27,9 +25,9 @@ export default function CommandCenter({ city, liveAQI, alerts }) {
     const load = async () => {
       try {
         const [statsRes, histRes, wardRes] = await Promise.all([
-          axios.get(`${API}/api/aqi/stats/${city}`),
-          axios.get(`${API}/api/aqi/history/${city}`),
-          axios.get(`${API}/api/aqi/city/${city}`),
+          api.get(`/api/aqi/stats/${city}`),
+          api.get(`/api/aqi/history/${city}`),
+          api.get(`/api/aqi/city/${city}`),
         ]);
         setStats(statsRes.data.data);
         setHistory(histRes.data.data || []);
@@ -181,10 +179,11 @@ export default function CommandCenter({ city, liveAQI, alerts }) {
 
       {/* CENTER: MAP */}
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-        <AQIHeatmap city={city} forecastHours={forecastHours} />
-        <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
+        {/* Top Floating Forecast Control Bar */}
+        <div style={{ position: 'absolute', top: 18, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'auto' }}>
           <ForecastSlider city={city} value={forecastHours} onChange={setForecastHours} />
         </div>
+        <AQIHeatmap city={city} forecastHours={forecastHours} />
       </div>
 
     </div>

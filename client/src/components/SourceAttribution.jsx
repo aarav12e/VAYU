@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
-
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+import api from '../services/api';
 
 const TrendIcon = ({ trend }) => {
   if (trend === 'increasing') return <TrendingUp size={10} color="#ff6d00" />;
@@ -19,7 +17,7 @@ export default function SourceAttribution({ city }) {
     const load = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`${API}/api/forecast/attribution/${city}`);
+        const res = await api.get(`/api/forecast/attribution/${city}`);
         const raw = res.data?.data;
         setData(Array.isArray(raw) ? raw : []);
       } catch (err) {

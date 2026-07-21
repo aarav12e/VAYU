@@ -2,17 +2,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, useNavigate } from 'react-router-dom';
 import {
   Wind, MapPin, ShieldAlert, MessageSquare, Activity, Bell, ChevronDown, Wifi,
-  X, AlertTriangle, Zap, Info, CheckCircle, Home
+  X, AlertTriangle, Zap, Info, Home
 } from 'lucide-react';
 import LandingPage from './pages/LandingPage';
 import CommandCenter from './pages/CommandCenter';
 import Enforcement from './pages/Enforcement';
 import CitizenChat from './pages/CitizenChat';
-import { getSocket, subscribeToCity } from './socket';
-import { Starfield } from './components/Starfield';
-import axios from 'axios';
-
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+import { getSocket, subscribeToCity } from './services/socket';
+import api from './services/api';
+import { CITIES, AQI_COLOR_MAP } from './config/constants';
+import Starfield from './components/layout/Starfield';
+import CityDropdownMenu from './components/layout/CityDropdownMenu';
 
 const SEVERITY_CONFIG = {
   CRITICAL: { color: '#d50000', bg: 'rgba(213,0,0,0.1)', border: 'rgba(213,0,0,0.25)', icon: Zap },
@@ -29,14 +29,6 @@ function getTimeAgo(ts) {
   if (mins < 60) return `${mins}m ago`;
   return `${Math.floor(mins / 60)}h ago`;
 }
-
-const CITIES = [
-  'Mumbai', 'Delhi', 'Bengaluru', 'Chennai', 'Kolkata', 'Hyderabad',
-  'Ahmedabad', 'Jaipur', 'Lucknow', 'Chandigarh', 'Patna', 'Bhubaneswar',
-  'Thiruvananthapuram', 'Bhopal', 'Visakhapatnam', 'Guwahati', 'Ranchi',
-  'Raipur', 'Dehradun', 'Shimla', 'Srinagar', 'Panaji', 'Leh', 'Puducherry',
-  'Agartala', 'Shillong', 'Imphal', 'Kohima', 'Aizawl', 'Itanagar', 'Gangtok', 'Pune'
-];
 
 function MainLayout() {
   const [selectedCity, setSelectedCity] = useState('Mumbai');
@@ -70,30 +62,25 @@ function MainLayout() {
     return () => {
       socket.off('aqi:update');
       socket.off('alert:new');
-      socket.off('connect');
-      socket.off('disconnect');
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
     };
   }, [selectedCity]);
 
   useEffect(() => {
-    axios.get(`${API}/api/aqi/live`).then((res) => {
+    api.get('/api/aqi/live').then((res) => {
       const map = {};
       res.data.data?.forEach((r) => { map[r.city] = { aqi: r.aqi, category: r.category }; });
       setLiveAQI(map);
     }).catch(() => {});
 
-    axios.get(`${API}/api/aqi/alerts/${selectedCity}`).then((res) => {
+    api.get(`/api/aqi/alerts/${selectedCity}`).then((res) => {
       setAlerts(res.data.data || []);
     }).catch(() => {});
   }, [selectedCity]);
 
   const cityAQI = liveAQI[selectedCity];
-
-  const aqiColorMap = {
-    Good: '#00e676', Satisfactory: '#76ff03', Moderate: '#ffea00',
-    Poor: '#ff6d00', 'Very Poor': '#d50000', Severe: '#9c27b0',
-  };
-  const aqiColor = aqiColorMap[cityAQI?.category] || '#00e5ff';
+  const aqiColor = AQI_COLOR_MAP[cityAQI?.category] || '#00e5ff';
   const criticalCount = alerts.filter(a => a.severity === 'CRITICAL').length;
 
   useEffect(() => {
@@ -204,12 +191,16 @@ function MainLayout() {
             <span>Home</span>
           </button>
 
-          {/* Connection status */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          {/* Status pill */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            background: 'rgba(14,22,35,0.8)', border: '1px solid rgba(0,229,255,0.12)',
+            borderRadius: 999, padding: '4px 10px',
+          }}>
             <div style={{
               width: 6, height: 6, borderRadius: '50%',
               background: isConnected ? '#00e676' : '#ff6d00',
-              boxShadow: isConnected ? '0 0 6px #00e676' : '0 0 6px #ff6d00',
+              boxShadow: `0 0 6px ${isConnected ? '#00e676' : '#ff6d00'}`,
             }} />
             <span style={{ fontSize: 10, color: '#57606a' }}>
               {isConnected ? 'LIVE' : 'OFFLINE'}
@@ -285,70 +276,77 @@ function MainLayout() {
                       </span>
                     )}
                   </div>
-                  <button
-                    onClick={() => setNotifOpen(false)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}
-                  >
+                  <button onClick={() => setNotifOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                     <X size={14} />
                   </button>
                 </div>
 
-                <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', gap: 4, flexShrink: 0 }}>
-                  {['ALL', 'CRITICAL', 'HIGH', 'MEDIUM'].map((f) => {
-                    const cfg = SEVERITY_CONFIG[f] || {};
-                    const isActive = notifFilter === f;
-                    return (
-                      <button key={f} onClick={() => setNotifFilter(f)} style={{
-                        padding: '3px 10px', borderRadius: 5, cursor: 'pointer',
-                        fontFamily: 'Space Grotesk, sans-serif', fontSize: 10, fontWeight: 600,
-                        border: isActive ? `1px solid ${f === 'ALL' ? 'var(--border-active)' : cfg.border}` : '1px solid transparent',
-                        background: isActive ? (f === 'ALL' ? 'var(--cyan-glow)' : cfg.bg) : 'transparent',
-                        color: isActive ? (f === 'ALL' ? 'var(--cyan-bright)' : cfg.color) : 'var(--text-muted)',
-                        letterSpacing: '0.04em',
-                      }}>{f}</button>
-                    );
-                  })}
+                {/* Filter Tabs */}
+                <div style={{
+                  display: 'flex', gap: 4, padding: '8px 16px',
+                  borderBottom: '1px solid var(--border-subtle)', background: 'rgba(14,22,35,0.4)',
+                  flexShrink: 0,
+                }}>
+                  {['ALL', 'CRITICAL', 'HIGH', 'MEDIUM'].map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setNotifFilter(f)}
+                      style={{
+                        padding: '3px 10px', borderRadius: 6, border: 'none',
+                        fontSize: 10, fontWeight: 600, cursor: 'pointer',
+                        background: notifFilter === f ? 'var(--cyan-dim)' : 'transparent',
+                        color: notifFilter === f ? 'var(--bg-void)' : 'var(--text-muted)',
+                        fontFamily: 'Space Grotesk, sans-serif',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {f}
+                    </button>
+                  ))}
                 </div>
 
-                <div style={{ flex: 1, overflow: 'auto', padding: '10px 12px' }}>
+                {/* Alert List */}
+                <div style={{ flex: 1, overflow: 'auto', padding: '8px 12px' }}>
                   {(() => {
-                    const filtered = notifFilter === 'ALL' ? alerts : alerts.filter(a => a.severity === notifFilter);
-                    const display = filtered.length > 0 ? filtered : getDemoAlerts(selectedCity);
-                    if (display.length === 0) return (
-                      <div style={{ textAlign: 'center', padding: '32px 20px' }}>
-                        <CheckCircle size={28} color="#00e676" style={{ marginBottom: 10 }} />
-                        <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>No active alerts</div>
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Air quality is being monitored</div>
-                      </div>
-                    );
-                    return display.map((alert, i) => {
-                      const cfg = SEVERITY_CONFIG[alert.severity] || SEVERITY_CONFIG.MEDIUM;
-                      const Icon = cfg.icon;
+                    const displayAlerts = alerts.length > 0 ? alerts : getDemoAlerts(selectedCity);
+                    const filtered = displayAlerts.filter(a => notifFilter === 'ALL' || a.severity === notifFilter);
+                    if (filtered.length === 0) {
                       return (
-                        <div key={alert._id || i} className="animate-slide-up" style={{
-                          background: cfg.bg, border: `1px solid ${cfg.border}`,
-                          borderRadius: 10, padding: '10px 12px', marginBottom: 8,
-                        }}>
-                          <div style={{ display: 'flex', gap: 8 }}>
+                        <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>
+                          No {notifFilter.toLowerCase()} alerts for {selectedCity}
+                        </div>
+                      );
+                    }
+                    return filtered.map((alert) => {
+                      const cfg = SEVERITY_CONFIG[alert.severity] || SEVERITY_CONFIG.LOW;
+                      const IconComp = cfg.icon;
+                      return (
+                        <div
+                          key={alert._id || alert.id}
+                          style={{
+                            padding: '10px 12px', borderRadius: 8, marginBottom: 6,
+                            background: cfg.bg, border: `1px solid ${cfg.border}`,
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                             <div style={{
-                              width: 26, height: 26, borderRadius: 6, flexShrink: 0,
-                              background: `${cfg.color}22`,
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              width: 24, height: 24, borderRadius: 6,
+                              background: `${cfg.color}20`, display: 'flex',
+                              alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1,
                             }}>
-                              <Icon size={12} color={cfg.color} />
+                              <IconComp size={12} color={cfg.color} />
                             </div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                                <span style={{ fontSize: 9, fontWeight: 700, color: cfg.color, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                                  {alert.severity}
-                                </span>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: cfg.color }}>{alert.severity}</span>
                                 <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{getTimeAgo(alert.timestamp)}</span>
                               </div>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3, marginBottom: 3 }}>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 3 }}>
                                 {alert.title}
                               </div>
                               <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                                {alert.message?.substring(0, 110)}{alert.message?.length > 110 ? '...' : ''}
+                                {alert.message}
                               </div>
                               {alert.aqi && (
                                 <div style={{ marginTop: 5, fontSize: 10, color: 'var(--text-muted)' }}>
@@ -391,7 +389,7 @@ function MainLayout() {
                 cities={CITIES}
                 selectedCity={selectedCity}
                 liveAQI={liveAQI}
-                aqiColorMap={aqiColorMap}
+                aqiColorMap={AQI_COLOR_MAP}
                 onSelect={(city) => {
                   setSelectedCity(city);
                   setCityDropdownOpen(false);
@@ -402,35 +400,24 @@ function MainLayout() {
         </div>
       </nav>
 
-      {/* MAIN PLATFORM ROUTES */}
-      <div style={{ flex: 1, overflow: 'hidden', minHeight: 0, position: 'relative', zIndex: 1 }}>
+      {/* PAGE CONTENT */}
+      <div style={{ flex: 1, overflow: 'hidden', position: 'relative', zIndex: 1 }}>
         <Routes>
           <Route path="/" element={<CommandCenter city={selectedCity} liveAQI={liveAQI} alerts={alerts} />} />
           <Route path="/enforcement" element={<Enforcement city={selectedCity} />} />
-          <Route path="/citizen" element={<CitizenChat city={selectedCity} />} />
+          <Route path="/citizen" element={<CitizenChat city={selectedCity} liveAQI={liveAQI[selectedCity]} />} />
         </Routes>
       </div>
 
       {/* FOOTER */}
       <footer style={{
-        height: 32, flexShrink: 0,
-        background: 'rgba(9,14,23,0.92)',
-        borderTop: '1px solid rgba(0,229,255,0.12)',
-        display: 'flex', alignItems: 'center',
-        padding: '0 20px', gap: 20, zIndex: 100, position: 'relative',
+        height: 28, background: 'rgba(6,10,18,0.95)', borderTop: '1px solid rgba(0,229,255,0.1)',
+        display: 'flex', alignItems: 'center', padding: '0 20px', fontSize: 11, color: '#57606a',
+        flexShrink: 0, zIndex: 100, position: 'relative',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Wind size={10} color="var(--cyan-dim)" />
-          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-            Vayu Intelligence © 2025
-          </span>
-        </div>
-        <div style={{ height: 12, width: 1, background: 'var(--border-subtle)' }} />
-        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-          Data: OpenWeatherMap · OpenAQ · CPCB
-        </span>
-        <div style={{ height: 12, width: 1, background: 'var(--border-subtle)' }} />
-        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+        <span>Vayu Intelligence · Air Quality & AI Enforcement Platform</span>
+        <span style={{ margin: '0 8px' }}>·</span>
+        <span style={{ color: '#00e5ff' }}>
           Times of India Hackathon Entry
         </span>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -440,90 +427,6 @@ function MainLayout() {
           </span>
         </div>
       </footer>
-    </div>
-  );
-}
-
-function CityDropdownMenu({ cities, selectedCity, liveAQI, aqiColorMap, onSelect }) {
-  const [search, setSearch] = useState('');
-
-  const filteredCities = cities.filter((c) =>
-    c.toLowerCase().includes(search.toLowerCase())
-  );
-
-  return (
-    <div
-      style={{
-        position: 'absolute', top: 'calc(100% + 6px)', right: 0,
-        background: 'rgba(16, 26, 42, 0.96)', border: '1px solid var(--border-active)',
-        borderRadius: 12, overflow: 'hidden', zIndex: 300, width: 220,
-        boxShadow: '0 20px 60px rgba(0,0,0,0.85)',
-        backdropFilter: 'blur(20px)',
-        display: 'flex', flexDirection: 'column',
-      }}
-    >
-      <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(14,22,35,0.6)' }}>
-        <input
-          type="text"
-          placeholder="Search 32 cities..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          autoFocus
-          style={{
-            width: '100%', padding: '6px 10px', borderRadius: 6,
-            background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)',
-            color: 'var(--text-primary)', fontSize: 12, outline: 'none',
-            fontFamily: 'Space Grotesk, sans-serif',
-          }}
-        />
-      </div>
-
-      <div
-        style={{
-          maxHeight: 320,
-          overflowY: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        {filteredCities.length === 0 ? (
-          <div style={{ padding: '16px', fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>
-            No cities match "{search}"
-          </div>
-        ) : (
-          filteredCities.map((city) => {
-            const c = liveAQI[city];
-            const cColor = aqiColorMap[c?.category] || '#7ea8c0';
-            const isActive = city === selectedCity;
-            return (
-              <button
-                key={city}
-                onClick={() => onSelect(city)}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  width: '100%', padding: '9px 14px', background: isActive ? 'rgba(0,229,255,0.12)' : 'transparent',
-                  border: 'none', cursor: 'pointer', color: isActive ? '#00e5ff' : 'var(--text-primary)',
-                  fontSize: 13, fontFamily: 'Space Grotesk, sans-serif',
-                  borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background 0.1s',
-                  textAlign: 'left',
-                }}
-                onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'var(--bg-hover)'; }}
-                onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {isActive && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#00e5ff', boxShadow: '0 0 6px #00e5ff' }} />}
-                  <span style={{ fontWeight: isActive ? 700 : 400 }}>{city}</span>
-                </div>
-                {c && (
-                  <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: cColor }}>
-                    {c.aqi}
-                  </span>
-                )}
-              </button>
-            );
-          })
-        )}
-      </div>
     </div>
   );
 }

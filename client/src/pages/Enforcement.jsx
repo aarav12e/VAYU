@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { ShieldAlert, MapPin, ChevronRight, CheckCircle, Truck } from 'lucide-react';
 import { getAQIColor } from '../utils/aqiUtils';
-
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+import api from '../services/api';
 
 const SITE_TYPE_CONFIG = {
   CONSTRUCTION: { label: 'Construction', color: '#FFA07A', emoji: '🏗️' },
@@ -46,7 +44,7 @@ function EnforcementCard({ site, onStatusChange, rank }) {
   const handleDispatch = async () => {
     setUpdating(true);
     try {
-      await axios.patch(`${API}/api/enforcement/${site._id}/status`, { status: 'DISPATCHED' });
+      await api.patch(`/api/enforcement/${site._id}/status`, { status: 'DISPATCHED' });
       onStatusChange(site._id, 'DISPATCHED');
     } catch (err) {
       console.error(err);
@@ -219,7 +217,7 @@ export default function Enforcement({ city }) {
     const load = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`${API}/api/enforcement/recommendations/${city}`);
+        const res = await api.get(`/api/enforcement/recommendations/${city}`);
         setSites(res.data.data || []);
       } catch (err) {
         console.error('Enforcement error:', err.message);

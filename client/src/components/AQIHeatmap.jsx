@@ -218,7 +218,7 @@ function FallbackMap({ city, geojson }) {
 
       {/* Header */}
       <div style={{
-        padding: '20px 28px 16px',
+        padding: '64px 28px 16px',
         borderBottom: '1px solid var(--border-subtle)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         flexShrink: 0, zIndex: 1,

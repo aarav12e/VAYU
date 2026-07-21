@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Clock } from 'lucide-react';
 import { getAQIColor } from '../utils/aqiUtils';
-
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+import api from '../services/api';
 
 export default function ForecastSlider({ city, value, onChange }) {
   const [forecasts, setForecasts] = useState([]);
@@ -13,7 +11,7 @@ export default function ForecastSlider({ city, value, onChange }) {
     const load = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`${API}/api/forecast/${city}?hours=72`);
+        const res = await api.get(`/api/forecast/${city}?hours=72`);
         const data = res.data.data || [];
         setForecasts(Array.isArray(data) ? data : []);
       } catch (err) {
