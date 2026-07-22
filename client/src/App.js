@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { BrowserRouter as Router, Routes, Route, NavLink, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Routes, Route, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   Wind, MapPin, ShieldAlert, MessageSquare, Activity, Bell, ChevronDown, Wifi,
   X, AlertTriangle, Zap, Info
 } from 'lucide-react';
-import LandingPage from './pages/LandingPage';
-import CommandCenter from './pages/CommandCenter';
-import Enforcement from './pages/Enforcement';
-import CitizenChat from './pages/CitizenChat';
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const CommandCenter = lazy(() => import('./pages/CommandCenter'));
+const Enforcement = lazy(() => import('./pages/Enforcement'));
+const CitizenChat = lazy(() => import('./pages/CitizenChat'));
+
 import { getSocket, subscribeToCity } from './services/socket';
 import api from './services/api';
 import { CITIES, AQI_COLOR_MAP } from './config/constants';
@@ -444,11 +446,17 @@ function MainLayout() {
 
       {/* PAGE CONTENT */}
       <div style={{ flex: 1, overflow: 'hidden', position: 'relative', zIndex: 1 }}>
-        <Routes>
-          <Route path="/" element={<CommandCenter city={selectedCity} liveAQI={liveAQI} alerts={alerts} onSelectCity={(c) => setSelectedCity(c)} />} />
-          <Route path="/enforcement" element={<Enforcement city={selectedCity} />} />
-          <Route path="/citizen" element={<CitizenChat city={selectedCity} liveAQI={liveAQI[selectedCity]} />} />
-        </Routes>
+        <Suspense fallback={
+          <div style={{ display: 'flex', height: '100%', justifyContent: 'center', alignItems: 'center', color: 'var(--cyan-bright)' }}>
+            <div style={{ animation: 'pulse-dot 1.5s infinite', width: 12, height: 12, background: 'var(--cyan-bright)', borderRadius: '50%' }}></div>
+          </div>
+        }>
+          <Routes>
+            <Route path="/" element={<PageTransition><CommandCenter city={selectedCity} liveAQI={liveAQI} alerts={alerts} onSelectCity={(c) => setSelectedCity(c)} /></PageTransition>} />
+            <Route path="/enforcement" element={<PageTransition><Enforcement city={selectedCity} /></PageTransition>} />
+            <Route path="/citizen" element={<PageTransition><CitizenChat city={selectedCity} liveAQI={liveAQI[selectedCity]} /></PageTransition>} />
+          </Routes>
+        </Suspense>
       </div>
 
       {/* FEATURE MODALS */}
@@ -489,13 +497,54 @@ function MainLayout() {
   );
 }
 
+function PageTransition({ children }) {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -15 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        style={{ height: '100%', width: '100%' }}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+function AnimatedAppRoutes() {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname.startsWith('/app') ? '/app' : location.pathname}>
+        <Route path="/" element={
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} style={{ height: '100vh' }}>
+            <LandingPage />
+          </motion.div>
+        } />
+        <Route path="/app/*" element={
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} style={{ height: '100vh' }}>
+            <MainLayout />
+          </motion.div>
+        } />
+      </Routes>
+    </AnimatePresence>
+  );
+}
+
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/app/*" element={<MainLayout />} />
-      </Routes>
+      <Suspense fallback={
+        <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', background: '#030509' }}>
+          <div style={{ animation: 'pulse-dot 1.5s infinite', width: 16, height: 16, background: '#00e5ff', borderRadius: '50%' }}></div>
+        </div>
+      }>
+        <AnimatedAppRoutes />
+      </Suspense>
     </Router>
   );
 }
