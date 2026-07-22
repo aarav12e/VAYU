@@ -1,0 +1,66 @@
+name: 🏥 Health Monitor — Live Services
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"   # Every 6 hours automatically
+  workflow_dispatch:          # Or manually from GitHub UI
+
+jobs:
+  health-check:
+    name: 🏥 Check All Live Services
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🌐 Check Frontend
+        id: frontend
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 \
+            https://vayu-weld.vercel.app/app || echo "000")
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "Frontend HTTP: $STATUS"
+
+      - name: ⚡ Check Backend API
+        id: backend
+        run: |
+          RESPONSE=$(curl -sf --max-time 20 \
+            https://vayu-server.onrender.com/health 2>/dev/null || echo '{"status":"down"}')
+          echo "Backend: $RESPONSE"
+          STATUS=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status','unknown'))" 2>/dev/null || echo "unknown")
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+
+      - name: 🤖 Check AI Service
+        id: ai
+        run: |
+          RESPONSE=$(curl -sf --max-time 20 \
+            https://vayu-ai-service.onrender.com/health 2>/dev/null || echo '{"status":"down"}')
+          echo "AI Service: $RESPONSE"
+          STATUS=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print('agents' in d)" 2>/dev/null || echo "False")
+          echo "agents_present=$STATUS" >> $GITHUB_OUTPUT
+
+      - name: 📊 Health Report
+        run: |
+          echo ""
+          echo "╔══════════════════════════════════════════╗"
+          echo "║   🌬️  VAYU Intelligence Health Report    ║"
+          echo "╠══════════════════════════════════════════╣"
+          echo "║  Checked at: $(date -u '+%Y-%m-%d %H:%M UTC')"
+          echo "╠══════════════════════════════════════════╣"
+          FRONTEND="${{ steps.frontend.outputs.status }}"
+          if [ "$FRONTEND" = "200" ] || [ "$FRONTEND" = "301" ]; then
+            echo "║  🌐 Frontend  : ✅ ONLINE  (HTTP $FRONTEND)"
+          else
+            echo "║  🌐 Frontend  : ❌ ISSUE   (HTTP $FRONTEND)"
+          fi
+          BACKEND="${{ steps.backend.outputs.status }}"
+          if [ "$BACKEND" = "ok" ]; then
+            echo "║  ⚡ Backend   : ✅ ONLINE"
+          else
+            echo "║  ⚡ Backend   : ❌ ISSUE   ($BACKEND)"
+          fi
+          AI="${{ steps.ai.outputs.agents_present }}"
+          if [ "$AI" = "True" ]; then
+            echo "║  🤖 AI Svc    : ✅ ONLINE"
+          else
+            echo "║  🤖 AI Svc    : ❌ ISSUE"
+          fi
+          echo "╚══════════════════════════════════════════╝"
