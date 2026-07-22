@@ -4,12 +4,23 @@ import { getAQIColor, getAQICategory } from '../utils/aqiUtils';
 import api from '../services/api';
 
 const SUGGESTED_QUESTIONS = [
-  { en: 'Is it safe to go outside today?', hi: 'क्या आज बाहर जाना सुरक्षित है?' },
-  { en: 'Should my child go to school?', hi: 'क्या मेरा बच्चा स्कूल जा सकता है?' },
-  { en: 'What mask should I wear?', hi: 'मुझे कौन सा मास्क पहनना चाहिए?' },
-  { en: 'When will air quality improve?', hi: 'वायु गुणवत्ता कब बेहतर होगी?' },
-  { en: 'Are hospitals at risk today?', hi: 'क्या आज अस्पताल खतरे में हैं?' },
+  { en: 'Is it safe to go outside today?', hi: 'क्या आज बाहर जाना सुरक्षित है?', kn: 'ಇಂದು ಹೊರಾಂಗಣಕ್ಕೆ ಹೋಗುವುದು ಸುರಕ್ಷಿತವೇ?' },
+  { en: 'Should my child go to school?', hi: 'क्या मेरा बच्चा स्कूल जा सकता है?', kn: 'ನನ್ನ ಮಗು ಶಾಲೆಗೆ ಹೋಗಬೇಕೇ?' },
+  { en: 'What mask should I wear?', hi: 'मुझे कौन सा मास्क पहनना चाहिए?', kn: 'ನಾನು ಯಾವ ಮಾಸ್ಕ್ ಧರಿಸಬೇಕು?' },
+  { en: 'When will air quality improve?', hi: 'वायु गुणवत्ता कब बेहतर होगी?', kn: 'ಗಾಳಿಯ ಗುಣಮಟ್ಟ ಯಾವಾಗ ಉತ್ತಮಗೊಳ್ಳುತ್ತದೆ?' },
+  { en: 'Are hospitals at risk today?', hi: 'क्या आज अस्पताल खतरे में हैं?', kn: 'ಇಂದು ಆಸ್ಪತ್ರೆಗಳು ಅಪಾಯದಲ್ಲಿವೆಯೇ?' },
 ];
+
+const WELCOME_MESSAGES = {
+  kn: (city) => `ನಮಸ್ಕಾರ! 🙏 ನಾನು ವಾಯು, ${city} ಗಾಗಿ ನಿಮ್ಮ ಗಾಳಿಯ ಗುಣಮಟ್ಟ ಸಹಾಯಕ. ಗಾಳಿಯ ಗುಣಮಟ್ಟ, ಆರೋಗ್ಯದ ಅಪಾಯಗಳು ಅಥವಾ ಹೊರಾಂಗಣ ಸುರಕ್ಷತೆಯ ಬಗ್ಗೆ ಕನ್ನಡದಲ್ಲೇ ಪ್ರಶ್ನೆ ಕೇಳಿ.`,
+  hi: (city) => `नमस्ते! 🙏 मैं वायु हूँ, ${city} के लिए आपका वायु गुणवत्ता सहायक। आज की वायु गुणवत्ता या स्वास्थ्य सुरक्षा के बारे में हिंदी में कुछ भी पूछें।`,
+  ta: (city) => `வணக்கம்! 🙏 நான் வாயு, ${city} க்கான உங்கள் காற்றின் தரம் உதவியாளர்.`,
+  te: (city) => `నమస్కారం! 🙏 నేను వాయు, ${city} కోసం మీ గాలి నాణ్యత సహాయకుడిని.`,
+  mr: (city) => `नमस्कार! 🙏 मी वायू, ${city} साठी तुमचा हवा गुणवत्ता सहाय्यक.`,
+  bn: (city) => `নমস্কার! 🙏 আমি বায়ু, ${city}-এর জন্য আপনার বায়ুর গুণমান সহায়ক।`,
+  gu: (city) => `નમસ્તે! 🙏 હું વાયુ છું, ${city} માટે તમારો હવાની ગુણવત્તા સહાયક.`,
+  en: (city) => `Namaste! 🙏 I'm Vayu, your air quality assistant for ${city}. Ask me anything about today's air quality, health risks, or outdoor safety.`
+};
 
 const CITY_WARDS = {
   Mumbai: ['All Wards', 'Andheri', 'Bandra', 'Dharavi', 'Kurla', 'Worli', 'Malad', 'Powai', 'Thane'],
@@ -153,20 +164,24 @@ function VulnerableLocationCard({ loc }) {
 }
 
 export default function CitizenChat({ city }) {
-  const [messages, setMessages] = useState([
-    {
-      role: 'assistant',
-      content: `Namaste! 🙏 I'm Vayu, your air quality assistant for ${city}. Ask me anything about today's air quality, health risks, or outdoor safety in any language — English or Hindi.`,
-      timestamp: new Date(),
-    },
-  ]);
+  const [language, setLanguage] = useState('en');
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [language, setLanguage] = useState('en');
   const [ward, setWard] = useState('All Wards');
   const [vulnerableLocations, setVulnerableLocations] = useState([]);
-  const [showHindi] = useState(false);
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    const welcomeText = (WELCOME_MESSAGES[language] || WELCOME_MESSAGES.en)(city);
+    setMessages([
+      {
+        role: 'assistant',
+        content: welcomeText,
+        timestamp: new Date(),
+      },
+    ]);
+  }, [language, city]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -199,7 +214,6 @@ export default function CitizenChat({ city }) {
         role: 'assistant',
         content: data.response,
         hindiText: data.responseHindi,
-        showHindi,
         recommendations: data.recommendations,
         aqi: data.aqi,
         aiPowered: data.aiPowered,
@@ -261,24 +275,28 @@ export default function CitizenChat({ city }) {
           </div>
 
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            {/* Language toggle */}
-            <button
-              onClick={() => setLanguage(l => l === 'en' ? 'hi' : 'en')}
-              style={{
-                padding: '6px 12px', borderRadius: 8,
-                border: '1px solid var(--border-subtle)',
-                background: 'var(--bg-surface)',
-                color: 'var(--text-secondary)', fontSize: 12, fontWeight: 600,
-                cursor: 'pointer', fontFamily: 'Space Grotesk, sans-serif',
-                display: 'flex', alignItems: 'center', gap: 6,
-                transition: 'all 0.15s',
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--cyan-bright)'}
-              onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
-            >
+            {/* Multilingual Selector */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 8, padding: '2px 8px' }}>
               <Globe size={13} color="var(--cyan-bright)" />
-              {language === 'en' ? '🇮🇳 हिंदी' : '🇬🇧 English'}
-            </button>
+              <select
+                value={language}
+                onChange={e => setLanguage(e.target.value)}
+                style={{
+                  background: 'transparent', border: 'none',
+                  color: 'var(--text-primary)', fontSize: 12, fontWeight: 600,
+                  fontFamily: 'Space Grotesk, sans-serif', cursor: 'pointer', outline: 'none',
+                }}
+              >
+                <option value="en">🇬🇧 English</option>
+                <option value="hi">🇮🇳 हिंदी (Hindi)</option>
+                <option value="kn">🇮🇳 ಕನ್ನಡ (Kannada)</option>
+                <option value="ta">🇮🇳 தமிழ் (Tamil)</option>
+                <option value="te">🇮🇳 తెలుగు (Telugu)</option>
+                <option value="mr">🇮🇳 मराठी (Marathi)</option>
+                <option value="bn">🇮🇳 বাংলা (Bengali)</option>
+                <option value="gu">🇮🇳 ગુજરાતી (Gujarati)</option>
+              </select>
+            </div>
 
             {/* Ward selector */}
             <select
@@ -331,26 +349,29 @@ export default function CitizenChat({ city }) {
         {/* Suggested Questions */}
         <div style={{ padding: '0 20px 8px', flexShrink: 0 }}>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {SUGGESTED_QUESTIONS.map((q, i) => (
-              <button
-                key={i}
-                onClick={() => sendMessage(language === 'hi' ? q.hi : q.en)}
-                disabled={loading}
-                style={{
-                  padding: '5px 10px', borderRadius: 999,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-surface)',
-                  color: 'var(--text-secondary)', fontSize: 11,
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  fontFamily: 'Space Grotesk, sans-serif',
-                  transition: 'all 0.15s', opacity: loading ? 0.5 : 1,
-                }}
-                onMouseEnter={e => { if (!loading) { e.currentTarget.style.borderColor = 'var(--border-active)'; e.currentTarget.style.color = 'var(--text-primary)'; }}}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
-              >
-                {language === 'hi' ? q.hi : q.en}
-              </button>
-            ))}
+            {SUGGESTED_QUESTIONS.map((q, i) => {
+              const label = q[language] || q.hi || q.en;
+              return (
+                <button
+                  key={i}
+                  onClick={() => sendMessage(label)}
+                  disabled={loading}
+                  style={{
+                    padding: '5px 10px', borderRadius: 999,
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-surface)',
+                    color: 'var(--text-secondary)', fontSize: 11,
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    fontFamily: 'Space Grotesk, sans-serif',
+                    transition: 'all 0.15s', opacity: loading ? 0.5 : 1,
+                  }}
+                  onMouseEnter={e => { if (!loading) { e.currentTarget.style.borderColor = 'var(--border-active)'; e.currentTarget.style.color = 'var(--text-primary)'; }}}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
         </div>
 

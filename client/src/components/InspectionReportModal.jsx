@@ -1,7 +1,15 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { X, Printer, FileText } from 'lucide-react';
 
 export default function InspectionReportModal({ site, city, onClose }) {
+  const contentRef = useRef(null);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.scrollTop = 0;
+    }
+  }, [site]);
+
   if (!site) return null;
 
   const handlePrint = () => {
@@ -15,28 +23,31 @@ export default function InspectionReportModal({ site, city, onClose }) {
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 500,
-      background: 'rgba(5, 10, 18, 0.9)',
+      position: 'fixed', top: 65, left: 0, right: 0, bottom: 30, zIndex: 9999,
+      background: 'rgba(5, 10, 18, 0.88)',
       backdropFilter: 'blur(16px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: 20, animation: 'fade-in 0.2s ease',
+      display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+      padding: '16px 16px', overflowY: 'auto',
+      animation: 'fade-in 0.2s ease',
     }}>
       <div style={{
-        width: '100%', maxWidth: 760, maxHeight: '92vh',
+        width: '100%', maxWidth: 760, maxHeight: 'calc(100vh - 120px)',
         background: '#ffffff', color: '#111827',
         borderRadius: 16, overflow: 'hidden',
         boxShadow: '0 30px 90px rgba(0,0,0,0.95)',
         display: 'flex', flexDirection: 'column',
-        fontFamily: 'Inter, sans-serif',
+        fontFamily: 'Inter, sans-serif', margin: '0 auto',
       }}>
-        {/* Printable Top Bar */}
+        {/* Printable Sticky Top Bar */}
         <div style={{
-          padding: '14px 24px', background: '#0f172a', color: '#f8fafc',
+          padding: '16px 24px', background: '#0f172a', color: '#f8fafc',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          position: 'sticky', top: 0, zIndex: 10, flexShrink: 0,
+          borderBottom: '1px solid #1e293b',
         }} className="no-print">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700 }}>
-            <FileText size={16} color="#00e5ff" />
-            <span>Official CPCB Inspection Order Generator</span>
+            <FileText size={18} color="#00e5ff" />
+            <span style={{ letterSpacing: '-0.01em' }}>Official CPCB Inspection Order Generator</span>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <button
@@ -63,7 +74,7 @@ export default function InspectionReportModal({ site, city, onClose }) {
         </div>
 
         {/* Formal Legal Document Body */}
-        <div style={{ padding: '32px 40px', overflowY: 'auto', flex: 1, background: '#ffffff' }}>
+        <div ref={contentRef} style={{ padding: '32px 40px', overflowY: 'auto', flex: 1, background: '#ffffff' }}>
 
           {/* Official Letterhead */}
           <div style={{ textTransform: 'uppercase', textAlign: 'center', borderBottom: '2px solid #0f172a', paddingBottom: 16, marginBottom: 20 }}>

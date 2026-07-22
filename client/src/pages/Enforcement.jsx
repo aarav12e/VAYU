@@ -3,6 +3,7 @@ import { ShieldAlert, MapPin, ChevronRight, CheckCircle, Truck, FileText, Databa
 import { getAQIColor } from '../utils/aqiUtils';
 import api from '../services/api';
 import InspectionReportModal from '../components/InspectionReportModal';
+import AQIHeatmap from '../components/AQIHeatmap';
 
 const SITE_TYPE_CONFIG = {
   CONSTRUCTION: { label: 'Construction', color: '#FFA07A', emoji: '🏗️' },
@@ -194,11 +195,11 @@ export default function Enforcement({ city }) {
   const totalContribution = sites.reduce((sum, s) => sum + (s.estimatedContribution || 0), 0);
 
   return (
-    <div style={{ display: 'flex', height: '100%', overflow: 'hidden', flexDirection: 'row', flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', height: '100%', width: '100%', overflow: 'hidden', flexDirection: 'row' }}>
       
       {/* LEFT: Live Violation Recommendations */}
       <div style={{
-        flex: '1 1 400px', maxWidth: 480, background: 'var(--bg-deep)',
+        width: 440, flexShrink: 0, height: '100%', background: 'var(--bg-deep)',
         borderRight: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', overflow: 'hidden',
       }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-subtle)', flexShrink: 0 }}>
@@ -240,7 +241,7 @@ export default function Enforcement({ city }) {
             })}
           </div>
         </div>
-        <div style={{ flex: 1, overflow: 'auto', padding: '12px 16px' }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '12px 16px' }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)', fontSize: 13 }}>
               <div style={{ width: 24, height: 24, borderRadius: '50%', border: '2px solid var(--cyan-dim)', borderTop: '2px solid var(--cyan-bright)', animation: 'spin 0.8s linear infinite', margin: '0 auto 10px' }} />
@@ -252,7 +253,7 @@ export default function Enforcement({ city }) {
               <div style={{ color: 'var(--text-secondary)', fontSize: 13 }}>No violation sites found</div>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 24 }}>
               {filtered.map((site, i) => (
                 <EnforcementCard key={site._id || i} site={site} rank={i + 1} onStatusChange={handleStatusChange} onOpenReport={setReportSite} />
               ))}
@@ -262,7 +263,7 @@ export default function Enforcement({ city }) {
       </div>
 
       {/* RIGHT: Registry + Map (Problem #3) */}
-      <div style={{ flex: '1 1 500px', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--bg-surface)' }}>
+      <div style={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column', overflowY: 'auto', background: 'var(--bg-surface)' }}>
         
         {/* Banner */}
         <div style={{
@@ -323,10 +324,28 @@ export default function Enforcement({ city }) {
                       </td>
                       <td style={{ padding: '10px 12px', fontSize: 11, color: '#ff6d00', fontWeight: 600 }}>~{r.impact}%</td>
                       <td style={{ padding: '10px 12px' }}>
-                        <button style={{
-                          background: 'rgba(0,229,255,0.1)', border: '1px solid rgba(0,229,255,0.3)', color: '#00e5ff',
-                          padding: '4px 8px', borderRadius: 6, fontSize: 10, fontWeight: 600, cursor: 'pointer'
-                        }}>Generate Brief</button>
+                        <button
+                          onClick={() => {
+                            setReportSite({
+                              _id: r.id,
+                              siteName: r.name,
+                              siteType: r.type,
+                              address: `${r.zone}, ${city}`,
+                              priorityScore: r.risk === 'Critical' ? 95 : r.risk === 'High' ? 82 : r.risk === 'Medium' ? 65 : 45,
+                              nearbyAQI: 220 + r.impact * 4,
+                              aiReasoning: `Source Attribution model flagged ${r.name} in ${r.zone} with ${r.compliance}% compliance rate. Contributing ~${r.impact}% elevation in localized PM2.5 concentrations.`,
+                              recommendedAction: `Issue Section 31A statutory notice to ${r.name} for mandatory air pollution audit and dust suppression compliance.`,
+                              status: 'PENDING'
+                            });
+                          }}
+                          style={{
+                            background: 'rgba(0,229,255,0.1)', border: '1px solid rgba(0,229,255,0.3)', color: '#00e5ff',
+                            padding: '4px 8px', borderRadius: 6, fontSize: 10, fontWeight: 600, cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,229,255,0.25)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0,229,255,0.1)'}
+                        >Generate Brief</button>
                       </td>
                     </tr>
                   )
@@ -336,21 +355,9 @@ export default function Enforcement({ city }) {
           </div>
         </div>
 
-        {/* Map Placeholder */}
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', minHeight: 250 }}>
-          <svg width="100%" height="100%" style={{ position: 'absolute', inset: 0, opacity: 0.04 }}>
-            <defs>
-              <pattern id="enfGrid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--cyan-bright)" strokeWidth="0.5" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#enfGrid)" />
-          </svg>
-          <div style={{ zIndex: 1, textAlign: 'center' }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>🗺️</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>Geospatial Evidence Map</div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', maxWidth: 300 }}>Hotspots dynamically correlated with registered emission sources</div>
-          </div>
+        {/* Live Interactive 3D Geospatial Evidence Map */}
+        <div style={{ flex: 1, minHeight: 320, position: 'relative', overflow: 'hidden' }}>
+          <AQIHeatmap city={city} />
         </div>
 
       </div>

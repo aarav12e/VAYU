@@ -482,10 +482,6 @@ function MainLayout() {
         flexShrink: 0, zIndex: 100, position: 'relative',
       }}>
         <span>Vayu Intelligence · Air Quality &amp; AI Enforcement Platform</span>
-        <span style={{ margin: '0 8px' }}>·</span>
-        <span style={{ color: 'var(--cyan-bright)' }}>
-          Times of India Hackathon Entry
-        </span>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
           <Wifi size={10} color={isConnected ? '#00e676' : '#ff6d00'} />
           <span style={{ fontSize: 10, color: isConnected ? '#00e676' : '#ff6d00' }}>

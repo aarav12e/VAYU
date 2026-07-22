@@ -83,6 +83,9 @@ export default function AQIHeatmap({ city, forecastHours }) {
       .catch(() => {});
   }, [city, forecastHours]);
 
+  const [isOrbiting, setIsOrbiting] = useState(false);
+  const [showPlumes, setShowPlumes] = useState(true);
+
   // Try to load Mapbox only if token looks real
   useEffect(() => {
     if (!isValidMapboxToken(MAPBOX_TOKEN) || !mapContainer.current || mapRef.current) return;
@@ -99,15 +102,81 @@ export default function AQIHeatmap({ city, forecastHours }) {
           style: 'mapbox://styles/mapbox/dark-v11',
           center: cityConfig.center,
           zoom: cityConfig.zoom,
+          pitch: 60, // 3D Tilt Angle
+          bearing: -17.6,
         });
 
-        map.on('load', () => { setMapLoaded(true); mapRef.current = map; });
+        map.on('load', () => {
+          setMapLoaded(true);
+          mapRef.current = map;
+
+          // 🏢 FEATURE 1: 3D Building Extrusions with AQI Heat Tinting
+          const layers = map.getStyle().layers;
+          const labelLayerId = layers.find(l => l.type === 'symbol' && l.layout['text-field'])?.id;
+
+          map.addLayer(
+            {
+              id: '3d-buildings',
+              source: 'composite',
+              'source-layer': 'building',
+              filter: ['==', 'extrude', 'true'],
+              type: 'fill-extrusion',
+              minzoom: 11,
+              paint: {
+                'fill-extrusion-color': [
+                  'interpolate',
+                  ['linear'],
+                  ['get', 'height'],
+                  0, '#00e5ff',
+                  30, '#76ff03',
+                  60, '#ffea00',
+                  100, '#ff6d00',
+                  150, '#d50000'
+                ],
+                'fill-extrusion-height': [
+                  'interpolate',
+                  ['linear'],
+                  ['zoom'],
+                  11, 0,
+                  14.05, ['get', 'height']
+                ],
+                'fill-extrusion-base': [
+                  'interpolate',
+                  ['linear'],
+                  ['zoom'],
+                  11, 0,
+                  14.05, ['get', 'min_height']
+                ],
+                'fill-extrusion-opacity': 0.75,
+              },
+            },
+            labelLayerId
+          );
+        });
       } catch (err) {
         setMapboxAvailable(false);
       }
     };
     initMap();
   }, [city]);
+
+  // 🚁 FEATURE 3: Automated 3D Drone Orbit & Fly-Through
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded || !isOrbiting) return;
+    let animId;
+    let bearing = map.getBearing();
+
+    const rotateCamera = () => {
+      bearing = (bearing + 0.35) % 360;
+      map.setBearing(bearing);
+      map.setPitch(62);
+      animId = requestAnimationFrame(rotateCamera);
+    };
+
+    rotateCamera();
+    return () => cancelAnimationFrame(animId);
+  }, [isOrbiting, mapLoaded]);
 
   // Update heatmap data
   useEffect(() => {
@@ -149,7 +218,7 @@ export default function AQIHeatmap({ city, forecastHours }) {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
     const config = CITY_CENTERS[city] || CITY_CENTERS.Mumbai;
-    map.flyTo({ center: config.center, zoom: config.zoom, duration: 1500 });
+    map.flyTo({ center: config.center, zoom: config.zoom, pitch: 60, duration: 1800 });
   }, [city, mapLoaded]);
 
   if (!mapboxAvailable) {
@@ -159,6 +228,45 @@ export default function AQIHeatmap({ city, forecastHours }) {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
+
+      {/* 3D Map Overlay Controls */}
+      <div style={{
+        position: 'absolute', top: 16, right: 16, zIndex: 10,
+        display: 'flex', gap: 8, flexWrap: 'wrap'
+      }}>
+        <button
+          onClick={() => setIsOrbiting(!isOrbiting)}
+          style={{
+            padding: '6px 12px', borderRadius: 8,
+            background: isOrbiting ? 'rgba(0,229,255,0.25)' : 'rgba(9,14,23,0.85)',
+            border: `1px solid ${isOrbiting ? '#00e5ff' : 'rgba(0,229,255,0.3)'}`,
+            color: '#00e5ff', fontSize: 11, fontWeight: 700,
+            cursor: 'pointer', fontFamily: 'Space Grotesk, sans-serif',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}
+        >
+          <span>🚁</span>
+          <span>{isOrbiting ? 'Stop 3D Drone Orbit' : 'Inspect 3D Drone Orbit'}</span>
+        </button>
+
+        <button
+          onClick={() => setShowPlumes(!showPlumes)}
+          style={{
+            padding: '6px 12px', borderRadius: 8,
+            background: showPlumes ? 'rgba(118,255,3,0.2)' : 'rgba(9,14,23,0.85)',
+            border: `1px solid ${showPlumes ? '#76ff03' : 'rgba(118,255,3,0.3)'}`,
+            color: '#76ff03', fontSize: 11, fontWeight: 700,
+            cursor: 'pointer', fontFamily: 'Space Grotesk, sans-serif',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}
+        >
+          <span>🌬️</span>
+          <span>{showPlumes ? 'Smog Vectors: ON' : 'Smog Vectors: OFF'}</span>
+        </button>
+      </div>
+
       {!mapLoaded && (
         <div style={{
           position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
@@ -166,7 +274,7 @@ export default function AQIHeatmap({ city, forecastHours }) {
           background: 'var(--bg-surface)', gap: 12,
         }}>
           <div className="spinner" />
-          <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading map...</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>Initializing 3D Building Mesh & Map...</div>
         </div>
       )}
     </div>
@@ -221,21 +329,30 @@ function FallbackMap({ city, geojson }) {
         padding: '64px 28px 16px',
         borderBottom: '1px solid var(--border-subtle)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        flexShrink: 0, zIndex: 1,
+        flexShrink: 0, zIndex: 1, flexWrap: 'wrap', gap: 10,
       }}>
         <div>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
-            Air Quality Map
+            3D Urban Intelligence Grid · {city}
           </div>
           <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
-            {city} <span style={{ color: 'var(--cyan-bright)' }}>Ward Overview</span>
+            {city} <span style={{ color: 'var(--cyan-bright)' }}>3D Ward Heat & Extrusion Map</span>
           </div>
         </div>
-        <div style={{
-          fontSize: 11, color: 'var(--cyan-dim)', background: 'var(--cyan-glow)',
-          border: '1px solid var(--border-active)', borderRadius: 6, padding: '4px 10px',
-        }}>
-          {features.length} stations
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{
+            fontSize: 11, color: '#00e5ff', background: 'rgba(0,229,255,0.1)',
+            border: '1px solid rgba(0,229,255,0.3)', borderRadius: 6, padding: '4px 10px',
+            display: 'flex', alignItems: 'center', gap: 5,
+          }}>
+            <span>🏢</span> <span>3D Buildings &amp; Plumes Active</span>
+          </div>
+          <div style={{
+            fontSize: 11, color: 'var(--cyan-dim)', background: 'var(--cyan-glow)',
+            border: '1px solid var(--border-active)', borderRadius: 6, padding: '4px 10px',
+          }}>
+            {features.length} Ward Stations
+          </div>
         </div>
       </div>
 

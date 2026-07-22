@@ -121,79 +121,88 @@ function generateSimpleAdvisory(context, userMessage = '', language = 'en') {
   const loc = ward && ward !== city ? `${ward}, ${city}` : city;
   const q = userMessage.toLowerCase();
 
-  let responseEn = '';
-  let responseHi = '';
+  const langResponses = {
+    hi: {
+      safe: `आज ${loc} में बाहर जाना सुरक्षित है (AQI: ${currentAQI} - ${category})।`,
+      unhealthy: `⚠️ ${loc} में आज वायु गुणवत्ता खराब है (AQI: ${currentAQI} - ${category})। मास्क का उपयोग करें।`,
+      schoolSafe: `हाँ, ${loc} में बच्चों के लिए स्कूल जाना सुरक्षित है (AQI: ${currentAQI})।`,
+      schoolUnhealthy: `${loc} में बच्चे स्कूल जा सकते हैं (AQI: ${currentAQI}), लेकिन बाहरी खेलकूद सीमित रखें।`,
+      mask: `${loc} में व्यस्त सड़कों के पास N95 मास्क पहनने की सलाह दी जाती है (AQI: ${currentAQI})।`,
+    },
+    kn: {
+      safe: `ಇಂದು ${loc} ನಲ್ಲಿ ಹೊರಾಂಗಣಕ್ಕೆ ಹೋಗುವುದು ಸುರಕ್ಷಿತವಾಗಿದೆ (AQI: ${currentAQI} - ${category}).`,
+      unhealthy: `⚠️ ${loc} ನಲ್ಲಿ ಗಾಳಿಯ ಗುಣಮಟ್ಟ ಕಳಪೆಯಾಗಿದೆ (AQI: ${currentAQI} - ${category}). ಮಾಸ್ಕ್ ಧರಿಸಿ.`,
+      schoolSafe: `ಹೌದು, ${loc} ನಲ್ಲಿ ಮಕ್ಕಳು ಶಾಲೆಗೆ ಹೋಗುವುದು ಸುರಕ್ಷಿತವಾಗಿದೆ (AQI: ${currentAQI}).`,
+      schoolUnhealthy: `${loc} ನಲ್ಲಿ ಮಕ್ಕಳು ಶಾಲೆಗೆ ಹೋಗಬಹುದು (AQI: ${currentAQI}), ಆದರೆ ಹೊರಾಂಗಣ ಆಟಗಳನ್ನು ಮಿತಿಗೊಳಿಸಿ.`,
+      mask: `${loc} ನಲ್ಲಿ ಸಂಚಾರ ಹೆಚ್ಚಿರುವ ಸ್ಥಳಗಳಲ್ಲಿ N95 ಮಾಸ್ಕ್ ಧರಿಸಲು ಸಲಹೆ ನೀಡಲಾಗುತ್ತದೆ (AQI: ${currentAQI}).`,
+    },
+    ta: {
+      safe: `இன்று ${loc} இல் வெளியே செல்வது பாதுகாப்பானது (AQI: ${currentAQI} - ${category}).`,
+      unhealthy: `⚠️ ${loc} இல் காற்றின் தரம் மோசமாக உள்ளது (AQI: ${currentAQI} - ${category}). முகக்கவசம் அணியவும்.`,
+      schoolSafe: `ஆம், ${loc} இல் குழந்தைகள் பள்ளிக்குச் செல்வது பாதுகாப்பானது (AQI: ${currentAQI}).`,
+      schoolUnhealthy: `${loc} இல் குழந்தைகள் பள்ளிக்குச் செல்லலாம் (AQI: ${currentAQI}), ஆனால் வெளிப்புற விளையாட்டுகளைக் குறைக்கவும்.`,
+      mask: `${loc} இல் அதிக போக்குவரத்து உள்ள பகுதிகளில் N95 முகக்கவசம் அணிய பரிந்துரைக்கப்படுகிறது (AQI: ${currentAQI}).`,
+    },
+    te: {
+      safe: `ఈ రోజు ${loc} లో బయటకు వెళ్లడం సురక్షితం (AQI: ${currentAQI} - ${category}).`,
+      unhealthy: `⚠️ ${loc} లో గాలి నాణ్యత తక్కువగా ఉంది (AQI: ${currentAQI} - ${category}). మాస్క్ ధరించండి.`,
+      schoolSafe: `అవును, ${loc} లో పిల్లలు పాఠశాలకు వెళ్లడం సురక్షితం (AQI: ${currentAQI}).`,
+      schoolUnhealthy: `${loc} లో పిల్లలు పాఠశాలకు వెళ్ళవచ్చు (AQI: ${currentAQI}), కానీ మైదానంలో ఆడే సమయం తగ్గించండి.`,
+      mask: `${loc} లో రద్దీగా ఉండే ప్రాంతాల్లో N95 మాస్క్ వాడండి (AQI: ${currentAQI}).`,
+    },
+    mr: {
+      safe: `आज ${loc} मध्ये बाहेर जाणे सुरक्षित आहे (AQI: ${currentAQI} - ${category}).`,
+      unhealthy: `⚠️ ${loc} मध्ये हवेची गुणवत्ता खराब आहे (AQI: ${currentAQI} - ${category}). मास्क वापरा.`,
+      schoolSafe: `होय, ${loc} मध्ये मुलांसाठी शाळेत जाणे सुरक्षित आहे (AQI: ${currentAQI}).`,
+      schoolUnhealthy: `${loc} मध्ये मुले शाळेत जाऊ शकतात (AQI: ${currentAQI}), पण मैदानी खेळ कमी करा.`,
+      mask: `${loc} मध्ये जास्त रहदारी असलेल्या ठिकाणी N95 मास्क वापरण्याचा सल्ला दिला जातो (AQI: ${currentAQI}).`,
+    },
+    bn: {
+      safe: `আজ ${loc}-এ বাইরে যাওয়া নিরাপদ (AQI: ${currentAQI} - ${category})।`,
+      unhealthy: `⚠️ ${loc}-এ বাতাসের গুণমান খারাপ (AQI: ${currentAQI} - ${category})। মাস্ক ব্যবহার করুন।`,
+      schoolSafe: `হ্যাঁ, ${loc}-এ শিশুদের স্কুলে যাওয়া সম্পূর্ণ নিরাপদ (AQI: ${currentAQI})।`,
+      schoolUnhealthy: `${loc}-এ শিশুরা স্কুলে যেতে পারে (AQI: ${currentAQI}), তবে বাইরের খেলাধুলা সীমিত রাখুন।`,
+      mask: `${loc}-এ ব্যস্ত রাস্তায় N95 মাস্ক পরার পরামর্শ দেওয়া হচ্ছে (AQI: ${currentAQI})।`,
+    },
+    gu: {
+      safe: `આજે ${loc} માં બહાર જવું સુરક્ષિત છે (AQI: ${currentAQI} - ${category}).`,
+      unhealthy: `⚠️ ${loc} માં હવાની ગુણવત્તા ખરાબ છે (AQI: ${currentAQI} - ${category}). માસ્ક પહેરો.`,
+      schoolSafe: `હા, ${loc} માં બાળકો માટે શાળાએ જવું સુરક્ષિત છે (AQI: ${currentAQI}).`,
+      schoolUnhealthy: `${loc} માં બાળકો શાળાએ જઈ શકે છે (AQI: ${currentAQI}), પરંતુ રમતગમત મર્યાદિત રાખો.`,
+      mask: `${loc} માં ટ્રાફિક વાળા વિસ્તારમાં N95 માસ્ક પહેરવાની સલાહ આપવામાં આવે છે (AQI: ${currentAQI}).`,
+    },
+    en: {
+      safe: `It is completely safe to go outside in ${loc} today. Air quality is ${category} (AQI: ${currentAQI}).`,
+      unhealthy: `⚠️ Air quality in ${loc} is ${category} today (AQI: ${currentAQI}). Limit heavy exertion outside.`,
+      schoolSafe: `Yes, it is completely safe for children to attend school in ${loc} today (AQI: ${currentAQI} - ${category}).`,
+      schoolUnhealthy: `Children can attend school in ${loc} (AQI: ${currentAQI}), but limit strenuous outdoor activities during rush hours.`,
+      mask: `An N95 mask is recommended near heavy traffic in ${loc} (AQI: ${currentAQI} - ${category}).`,
+    }
+  };
+
+  const dict = langResponses[language] || langResponses.en;
+  let text = '';
   let recs = [];
 
-  const greetings = ['hi', 'hello', 'hey', 'namaste', 'good morning', 'good evening', 'greetings', 'ssup', 'hola'];
-  if (greetings.includes(q.trim()) || q.startsWith('hi ') || q.startsWith('hello ')) {
-    responseEn = `Hello! 👋 I'm Vayu, your air quality assistant for ${city}. How can I help you today? Ask me about outdoor safety, school precautions, or mask advisories!`;
-    responseHi = `नमस्ते! 👋 मैं वायु हूँ, ${city} के लिए आपका वायु गुणवत्ता सहायक। मैं आपकी क्या मदद कर सकता हूँ?`;
-    recs = [
-      '🏃 Ask "Is it safe to exercise today?"',
-      '🏫 Ask "Should my child go to school?"',
-      '😷 Ask "Should I wear a mask?"',
-    ];
-  } else if (q.includes('school') || q.includes('child') || q.includes('kid') || q.includes('student')) {
-    if (currentAQI <= 100) {
-      responseEn = `Yes, it is completely safe for children to attend school and play outdoors in ${loc} today (AQI: ${currentAQI} - ${category}). Air quality is clean.`;
-      responseHi = `हाँ, आज ${loc} में बच्चों के लिए स्कूल जाना और बाहर खेलना पूरी तरह सुरक्षित है (AQI: ${currentAQI})।`;
-      recs = ['✅ Safe for school outdoor sports', '✅ Safe for morning assembly', '✅ Open classroom windows'];
-    } else {
-      responseEn = `Children can attend school in ${loc} (AQI: ${currentAQI} - ${category}), but strenuous outdoor sports and playtime should be limited during peak rush hours.`;
-      responseHi = `${loc} में बच्चे स्कूल जा सकते हैं (AQI: ${currentAQI}), लेकिन पीक ऑवर्स में भारी बाहरी खेल सीमित रखें।`;
-      recs = ['⚠️ Limit outdoor school sports during rush hours', '⚠️ Asthmatic children carry emergency inhalers', '✅ Indoor classroom activity safe'];
-    }
-  } else if (q.includes('hospital') || q.includes('risk') || q.includes('elderly') || q.includes('patient')) {
-    if (currentAQI <= 100) {
-      responseEn = `Hospitals and medical centers in ${loc} are at LOW risk today (AQI: ${currentAQI} - ${category}). Air quality is clear and safe for patients.`;
-      responseHi = `आज ${loc} में अस्पताल सुरक्षित हैं (AQI: ${currentAQI})। हवा साफ है।`;
-      recs = ['✅ Safe for respiratory & asthma patients', '✅ Safe for hospital outdoor areas'];
-    } else {
-      responseEn = `⚠️ Hospitals in ${loc} face MODERATE risk today (AQI: ${currentAQI} - ${category}). Asthmatic patients should keep inhalers ready.`;
-      responseHi = `⚠️ ${loc} में अस्पताल मध्यम जोखिम में हैं (AQI: ${currentAQI})।`;
-      recs = ['⚠️ Asthmatic patients keep inhalers ready', '✅ Use indoor air purifiers in ICUs'];
-    }
-  } else if (q.includes('safe') || q.includes('outside') || q.includes('jog') || q.includes('walk') || q.includes('exercise')) {
-    if (currentAQI <= 100) {
-      responseEn = `Yes! It is completely safe to go outside in ${loc} today. The air quality is ${category} (AQI: ${currentAQI}). Enjoy your walk or workout!`;
-      responseHi = `हाँ! आज ${loc} में बाहर जाना पूरी तरह सुरक्षित है (AQI: ${currentAQI})।`;
-      recs = ['✅ Safe for all outdoor activities', '✅ Morning & evening workouts encouraged'];
-    } else {
-      responseEn = `Outdoor activities in ${loc} are MODERATELY safe (AQI: ${currentAQI} - ${category}). Healthy adults can walk, but avoid heavy exertion.`;
-      responseHi = `${loc} में बाहर जाना मध्यम रूप से सुरक्षित है (AQI: ${currentAQI})।`;
-      recs = ['⚠️ Limit heavy workouts to < 45 mins', '⚠️ Sensitive groups avoid traffic'];
-    }
-  } else if (q.includes('mask') || q.includes('n95') || q.includes('purifier') || q.includes('protect')) {
-    if (currentAQI <= 100) {
-      responseEn = `No mask is needed today in ${loc}! The air quality is ${category} (AQI: ${currentAQI}). You can breathe freely.`;
-      responseHi = `आज ${loc} में मास्क की आवश्यकता नहीं है (AQI: ${currentAQI})।`;
-      recs = ['✅ Masks optional', '✅ Clean natural ventilation'];
-    } else {
-      responseEn = `A simple mask is recommended near heavy traffic in ${loc} (AQI: ${currentAQI} - ${category}). Asthmatic individuals should wear N95 masks.`;
-      responseHi = `${loc} में व्यस्त ट्रैफिक के पास मास्क पहनने की सलाह दी जाती है (AQI: ${currentAQI})।`;
-      recs = ['⚠️ Wear N95 mask near traffic', '⚠️ Run indoor air purifiers'];
-    }
+  if (q.includes('school') || q.includes('child') || q.includes('kid') || q.includes('student')) {
+    text = currentAQI <= 100 ? dict.schoolSafe : dict.schoolUnhealthy;
+    recs = ['🏫 School precaution advice', '😷 Carry inhaler if asthmatic', '🪟 Ventilate indoor classrooms'];
+  } else if (q.includes('mask') || q.includes('n95') || q.includes('protect')) {
+    text = dict.mask;
+    recs = ['😷 Wear N95 mask outdoors', '💨 Run indoor air purifiers', '🚗 Avoid heavy traffic zones'];
   } else {
-    if (currentAQI <= 100) {
-      responseEn = `Air quality in ${loc} is ${category} today (AQI: ${currentAQI}). Pollution levels are low and safe for all daily activities!`;
-      responseHi = `${loc} में आज वायु गुणवत्ता अच्छी है (AQI: ${currentAQI})।`;
-      recs = ['✅ Safe for outdoor routines', '✅ Exercise freely'];
-    } else {
-      responseEn = `Air quality in ${loc} is ${category} today (AQI: ${currentAQI}). Take basic precautions if you are sensitive to dust.`;
-      responseHi = `${loc} में आज वायु गुणवत्ता मध्यम है (AQI: ${currentAQI})।`;
-      recs = ['⚠️ Sensitive groups limit outdoor time', '⚠️ Wear mask near busy roads'];
-    }
+    text = currentAQI <= 100 ? dict.safe : dict.unhealthy;
+    recs = currentAQI <= 100 ? ['🏃 Safe for outdoor exercise', '🌱 Enjoy clear air'] : ['⚠️ Limit outdoor duration', '😷 Wear mask near main roads'];
   }
 
   return {
-    response: language === 'hi' ? responseHi : responseEn,
-    responseHindi: responseHi,
-    responseEnglish: responseEn,
+    response: text,
+    responseHindi: langResponses.hi.safe,
+    responseEnglish: langResponses.en.safe,
     aqi: currentAQI,
     category,
     recommendations: recs,
-    sources: ['CPCB Data Feed', 'Vayu Intelligence AI'],
+    sources: ['CPCB Data Feed', 'Vayu Multilingual AI Agent'],
     aiPowered: true,
   };
 }
