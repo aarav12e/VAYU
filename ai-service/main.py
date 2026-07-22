@@ -55,7 +55,15 @@ class CitizenQueryRequest(BaseModel):
     language: str = "en"
 
 
-# --- Health Check ---
+# --- Root & Health Check ---
+
+@app.get("/")
+async def root():
+    return {
+        "message": "Welcome to Vayu AI Service API",
+        "docs_url": "/docs",
+        "health_check": "/health"
+    }
 
 @app.get("/health")
 async def health():
