@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, MapPin, ChevronRight, CheckCircle, Truck, FileText, Database, AlertTriangle } from 'lucide-react';
+import { ShieldAlert, MapPin, ChevronRight, CheckCircle, Truck, FileText, Database } from 'lucide-react';
 import { getAQIColor } from '../utils/aqiUtils';
 import api from '../services/api';
 import InspectionReportModal from '../components/InspectionReportModal';
