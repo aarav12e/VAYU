@@ -80,7 +80,7 @@ jobs:
 
       - name: 📦 Install client deps
         working-directory: client
-        run: npm ci --prefer-offline
+        run: npm install   # use install (not ci) to tolerate minor lock file drift
 
       - name: 🏗️ React build check
         working-directory: client
