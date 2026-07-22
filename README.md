@@ -113,10 +113,10 @@ This separation allows each intelligence agent (attribution, forecasting, enforc
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │                          PRESENTATION LAYER                                  │
 │                                                                              │
-│   ┌──────────────────┐  ┌──────────────────┐  ┌────────────────────────┐    │
-│   │  React Command   │  │ Dispatch Console │  │  Citizen App / IVR     │    │
-│   │     Center       │  │  (Enforcement)   │  │  (Regional Languages)  │    │
-│   └──────────────────┘  └──────────────────┘  └────────────────────────┘    │
+│   ┌──────────────────┐  ┌──────────────────┐  ┌────────────────────────┐     │
+│   │  React Command   │  │ Dispatch Console │  │  Citizen App / IVR     │     │
+│   │     Center       │  │  (Enforcement)   │  │  (Regional Languages)  │     │
+│   └──────────────────┘  └──────────────────┘  └────────────────────────┘     │
 └────────────────────────────────┬─────────────────────────────────────────────┘
                                  │  HTTP REST + WebSocket (Socket.io)
 ┌────────────────────────────────▼─────────────────────────────────────────────┐
@@ -124,8 +124,8 @@ This separation allows each intelligence agent (attribution, forecasting, enforc
 │                                                                              │
 │        /api/aqi  │  /api/forecast  │  /api/enforcement  │  /api/citizen      │
 │                         ┌──────────────────────┐                             │
-│                         │   MongoDB 7.0        │   ← Geospatial Storage     │
-│                         │   Redis 7 (Cache)    │   ← 15-min AQI caching     │
+│                         │   MongoDB 7.0        │   ← Geospatial Storage      │
+│                         │   Redis 7 (Cache)    │   ← 15-min AQI caching      │
 │                         └──────────────────────┘                             │
 │                         Cron Data Ingestion Worker (every 15 min)            │
 └────────────────────────────────┬─────────────────────────────────────────────┘
@@ -148,7 +148,7 @@ This separation allows each intelligence agent (attribution, forecasting, enforc
 ┌────────────────────────────────▼─────────────────────────────────────────────┐
 │                         DATA INGESTION LAYER                                 │
 │                                                                              │
-│   WAQI CAAQMS   │   OpenWeatherMap   │   Sentinel-5P   │  MODIS  │   OSM    │
+│   WAQI CAAQMS   │   OpenWeatherMap   │   Sentinel-5P   │  MODIS  │   OSM     │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -548,7 +548,7 @@ The solution has been designed using publicly available environmental datasets, 
 
 **Built with ❤️ and a lot of ☕ for ET AI Hackathon 2.0**
 
-*VAYU Intelligence — Because clean air is not a luxury, it's a right.*
+*VAYU Intelligence Because clean air is not a luxury, it's a right.*
 
 <br/>
 
