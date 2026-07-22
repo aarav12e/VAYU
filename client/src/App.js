@@ -5,11 +5,6 @@ import {
   Wind, MapPin, ShieldAlert, MessageSquare, Activity, Bell, ChevronDown, Wifi,
   X, AlertTriangle, Zap, Info
 } from 'lucide-react';
-const LandingPage = lazy(() => import('./pages/LandingPage'));
-const CommandCenter = lazy(() => import('./pages/CommandCenter'));
-const Enforcement = lazy(() => import('./pages/Enforcement'));
-const CitizenChat = lazy(() => import('./pages/CitizenChat'));
-
 import { getSocket, subscribeToCity } from './services/socket';
 import api from './services/api';
 import { CITIES, AQI_COLOR_MAP } from './config/constants';
@@ -18,6 +13,11 @@ import CityDropdownMenu from './components/layout/CityDropdownMenu';
 import HealthPlannerModal from './components/HealthPlannerModal';
 import CityComparisonModal from './components/CityComparisonModal';
 import ThemeSwitcher, { useTheme } from './components/ThemeSwitcher';
+
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const CommandCenter = lazy(() => import('./pages/CommandCenter'));
+const Enforcement = lazy(() => import('./pages/Enforcement'));
+const CitizenChat = lazy(() => import('./pages/CitizenChat'));
 
 const SEVERITY_CONFIG = {
   CRITICAL: { color: '#d50000', bg: 'rgba(213,0,0,0.1)', border: 'rgba(213,0,0,0.25)', icon: Zap },
